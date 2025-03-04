@@ -77,3 +77,22 @@ In order to compute the predictions from a previously trained SPANet model, one 
 python -m spanet.predict spanet_output/my_model predicitons.h5 -tf input.h5 --gpu
 ```
 where `spanet_output/my_model` is the folder where the checkpoints of the trained SPANet model are saved, `predicitons.h5` is the name of the output file containing the predictions and `input.h5` is the input `.h5` test file in SPANet format. With the `--gpu` flag one can profit from the available GPUs.
+
+
+------------
+# Practicality guide
+
+You have already run pocketcoffea and saved the ntuples in parquet files in a series of folder (one folder per dataset)
+-     Create parquet metadata in each folder with this script: https://github.com/PocketCoffea/AnalysisConfigs/blob/main/configs/ttHbb/semileptonic/spanet_v2/create_parquet.py
+-  Run the script coffea_to_parquet.py to save one file per dataset with a more compact format: https://github.com/mmarchegiani/ttHbb_SPANet/blob/main/tthbb_spanet/scripts/dataset/coffea_to_parquet.py
+-   Run the script parquet_to_h5.py to save the H5 file in the SPANet format starting from these intermediate parquet files as input: https://github.com/mmarchegiani/ttHbb_SPANet/blob/main/tthbb_spanet/scripts/dataset/parquet_to_h5.py
+
+Examples on how to run the scripts:
+
+-   coffea_to_parquet.py: https://github.com/mmarchegiani/ttHbb_SPANet/blob/main/scripts/create_parquet_datasets_spanet_v2.sh
+-    parquet_to_h5.py: https://github.com/mmarchegiani/ttHbb_SPANet/blob/main/scripts/create_h5_datasets_full_Run2_classifier_spanet_v2.sh
+
+Important parameter files:
+
+ -   YAML parameter file with list of features to save in the intermediate parquet files: https://github.com/mmarchegiani/ttHbb_SPANet/blob/main/parameters/features.yaml
+ -   YAML parameter file with list of features to save in the H5 file in SPANet format: https://github.com/mmarchegiani/ttHbb_SPANet/blob/main/parameters/features_spanet_one_hot_encoding.yaml
