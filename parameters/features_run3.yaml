@@ -1,0 +1,245 @@
+features:
+  common:
+    JetGood:
+      pt: pt
+      eta: eta
+      phi: phi
+      btag: btagDeepFlavB
+      #btag_L: btag_L
+      #btag_M: btag_M
+      #btag_T: btag_H
+      #btag_CvL: btagDeepFlavCvL
+      #btag_CvB: btagDeepFlavCvB
+    LeptonGood:
+      pt: pt
+      eta: eta
+      phi: phi
+      #pdgId: pdgId
+    MET:
+      pt: pt
+      phi: phi
+
+  by_sample:
+    ttHTobb:
+      PartonInitial:
+        pt: pt
+        eta: eta
+        phi: phi
+        mass: mass
+        pdgId: pdgId
+        prov: provenance
+      PartonLastCopy:
+        pt: pt
+        eta: eta
+        phi: phi
+        mass: mass
+        pdgId: pdgId
+        prov: provenance
+      PartonInitialMatched:
+        pt: pt
+        eta: eta
+        phi: phi
+        mass: mass
+        pdgId: pdgId
+        prov: provenance
+      PartonLastCopyMatched:
+        pt: pt
+        eta: eta
+        phi: phi
+        mass: mass
+        pdgId: pdgId
+        prov: provenance
+      JetGood:
+        pt: pt
+        eta: eta
+        phi: phi
+        btag: btagDeepFlavB
+        #btag_L: btag_L
+        #btag_M: btag_M
+        #btag_T: btag_H
+        #btag_CvL: btagDeepFlavCvL
+        #btag_CvB: btagDeepFlavCvB
+      JetGoodMatched:
+        pt: pt
+        eta: eta
+        phi: phi
+        hadronFlavour: hadronFlavour
+        btag: btagDeepFlavB
+        #btag_L: btag_L
+        #btag_M: btag_M
+        #btag_H: btag_H
+        #btag_CvL: btagDeepFlavCvL
+        #btag_CvB: btagDeepFlavCvB
+        dRMatchedJet: dRMatchedJet
+        prov: provenance
+      LeptonGood:
+        pt: pt
+        eta: eta
+        phi: phi
+        #pdgId: pdgId
+      MET:
+        pt: pt
+        phi: phi
+      Generator:
+        pdgid1: id1
+        pdgid2: id2
+        x1: x1
+        x2: x2
+        xpdf1: xpdf1
+        xpdf2: xpdf2
+      LeptonGenLevel:
+        pt: pt
+        eta: eta
+        phi: phi
+        mass: mass
+        pdgId: pdgId
+      HiggsGen:
+        pt: pt
+        eta: eta
+        phi: phi
+        mass: mass
+        pdgId: pdgId
+      TopGen:
+        pt: pt
+        eta: eta
+        phi: phi
+        mass: mass
+        pdgId: pdgId
+      AntiTopGen:
+        pt: pt
+        eta: eta
+        phi: phi
+        mass: mass
+        pdgId: pdgId
+      ISR:
+        pt: pt
+        eta: eta
+        phi: phi
+        mass: mass
+        pdgId: pdgId
+
+    TTHtoNon2B:
+      PartonInitial:
+        pt: pt
+        eta: eta
+        phi: phi
+        mass: mass
+        pdgId: pdgId
+        prov: provenance
+      PartonLastCopy:
+        pt: pt
+        eta: eta
+        phi: phi
+        mass: mass
+        pdgId: pdgId
+        prov: provenance
+      PartonInitialMatched:
+        pt: pt
+        eta: eta
+        phi: phi
+        mass: mass
+        pdgId: pdgId
+        prov: provenance
+      PartonLastCopyMatched:
+        pt: pt
+        eta: eta
+        phi: phi
+        mass: mass
+        pdgId: pdgId
+        prov: provenance
+      JetGood:
+        pt: pt
+        eta: eta
+        phi: phi
+        btag: btagDeepFlavB
+        #btag_L: btag_L
+        #btag_M: btag_M
+        #btag_T: btag_H
+        #btag_CvL: btagDeepFlavCvL
+        #btag_CvB: btagDeepFlavCvB
+      JetGoodMatched:
+        pt: pt
+        eta: eta
+        phi: phi
+        hadronFlavour: hadronFlavour
+        btag: btagDeepFlavB
+        #btag_L: btag_L
+        #btag_M: btag_M
+        #btag_H: btag_H
+        #btag_CvL: btagDeepFlavCvL
+        #btag_CvB: btagDeepFlavCvB
+        dRMatchedJet: dRMatchedJet
+        prov: provenance
+      LeptonGood:
+        pt: pt
+        eta: eta
+        phi: phi
+        #pdgId: pdgId
+      MET:
+        pt: pt
+        phi: phi
+      Generator:
+        pdgid1: id1
+        pdgid2: id2
+        x1: x1
+        x2: x2
+        xpdf1: xpdf1
+        xpdf2: xpdf2
+      LeptonGenLevel:
+        pt: pt
+        eta: eta
+        phi: phi
+        mass: mass
+        pdgId: pdgId
+      HiggsGen:
+        pt: pt
+        eta: eta
+        phi: phi
+        mass: mass
+        pdgId: pdgId
+      TopGen:
+        pt: pt
+        eta: eta
+        phi: phi
+        mass: mass
+        pdgId: pdgId
+      AntiTopGen:
+        pt: pt
+        eta: eta
+        phi: phi
+        mass: mass
+        pdgId: pdgId
+      ISR:
+        pt: pt
+        eta: eta
+        phi: phi
+        mass: mass
+        pdgId: pdgId
+
+features_pad:
+  common:
+    JetGood:
+      m: 0
+    JetGoodMatched:
+      m: 0
+    LeptonGood:
+      m: 0
+    MET:
+      m: 0
+      eta: 0
+  by_sample: {}
+
+awkward_collections:
+  - PartonInitial
+  - PartonInitialMatched
+  - PartonLastCopy
+  - PartonLastCopyMatched
+  - JetGood
+  - JetGoodMatched
+  - LeptonGenLevel
+
+matched_collections:
+  PartonInitial: PartonInitialMatched
+  PartonLastCopy: PartonLastCopyMatched
+  JetGood: JetGoodMatched
+
