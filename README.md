@@ -31,7 +31,8 @@ pip install -e .
 The next time the user enters in the apptainer the virtual environment needs to be activated.
 ```bash
 #Enter the image
-apptainer shell -B /afs -B /eos --nv /cvmfs/unpacked.cern.ch/registry.hub.docker.com/cmsml/cmsml:latest
+apptainer shell -B /afs -B /eos -B /eos/cms/store --env KRB5CCNAME=${XDG_RUNTIME_DIR}/krb5cc -B ${XDG_RUNTIME_DIR} \
+--nv /cvmfs/unpacked.cern.ch/registry.hub.docker.com/cmsml/cmsml:latest
 
 # Activate the virtual environment
 cd SPANet
