@@ -19,10 +19,11 @@ setup(
         'awkward>=1.10.3,<2',
         'coffea==0.7.22',
         'h5py>=3.9',
-        'vector',
+        'vector<1.5.0',
         'omegaconf',
         'scikit-learn',
-        'htcondor'
+        'htcondor',
+        'pyarrow==18.0.0'
     ],
     classifiers=[
         'Development Status :: 1 - Planning',
