@@ -1,0 +1,46 @@
+INPUTS:
+    SEQUENTIAL:
+        Jet:
+            pt: log_normalize
+            eta: normalize
+            phi: normalize
+            btag: none
+            btag_L: none
+            btag_M: none
+            btag_T: none
+            btag_XT: none
+            btag_XXT: none
+
+    GLOBAL:
+        Met:
+            pt: log_normalize
+            eta: normalize
+            phi: normalize
+        Lepton:
+            pt: log_normalize
+            eta: normalize
+            phi: normalize
+        Event:
+            ht: normalize
+EVENT:
+    t1:
+        - q1
+        - q2
+        - b
+    t2:
+        - b
+    h:
+        - b1
+        - b2
+       
+PERMUTATIONS:
+    t1:
+        - [q1, q2]
+    h:
+        - [b1, b2]
+
+REGRESSIONS:
+
+CLASSIFICATIONS:
+    EVENTS:
+        - signal
