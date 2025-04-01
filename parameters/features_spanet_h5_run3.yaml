@@ -1,0 +1,62 @@
+input:
+  Jet: [MASK, pt, eta, phi, btag, btag_L, btag_M, btag_T, btag_XT, btag_XXT]
+  Lepton: [pt, eta, phi]
+  Met: [pt, eta, phi]
+  Event: [ht]
+
+collection:
+  Jet: JetGood
+  Lepton: LeptonGood
+  Met: MET
+
+particles: [t1, t2, h]
+
+mapping_sample:
+  TTH_Hto2B: tthbb
+  ttB: ttbb
+  ttC: ttcc
+  ttLF: ttlf
+  WJetsToLNu: wjets
+  TTLL_ML_to50: ttv
+  TTLL_ML_50: ttv
+  TTNuNu: ttv
+  TTLNu: ttv
+  TTZ: ttv
+  TWminus: singlet
+  TWplus: singlet
+  ZZ: vv
+  WZ: vv
+  WW: vv
+
+
+mapping_encoding:
+  signal:
+    TTH_Hto2B: 1
+    ttB: 2
+    ttC: 3
+    ttLF: 4
+    WJetsToLNu: 5
+    TTLL_ML_to50: 6
+    TTLL_ML_50: 6
+    TTNuNu: 6
+    TTLNu: 6
+    TTZ: 6
+    TWminus: 7
+    TWplus: 7
+    ZZ: 8
+    WZ: 8
+    WW: 8
+
+classification:
+  EVENT:
+#    - tthbb
+#    - ttbb
+#    - ttcc
+#    - ttlf
+#    - wjets
+#    - ttv
+#    - singlet
+#    - vv
+    - signal
+
+frac_train: 0.8
