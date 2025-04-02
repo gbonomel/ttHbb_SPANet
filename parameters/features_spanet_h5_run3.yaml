@@ -16,7 +16,6 @@ mapping_sample:
   ttB: ttbb
   ttC: ttcc
   ttLF: ttlf
-  WJetsToLNu: wjets
   TTLL_ML_to50: ttv
   TTLL_ML_50: ttv
   TTNuNu: ttv
@@ -24,9 +23,11 @@ mapping_sample:
   TTZ: ttv
   TWminus: singlet
   TWplus: singlet
-  ZZ: vv
-  WZ: vv
-  WW: vv
+#  ZZ: vv
+#  WZ: vv
+#  WW: vv
+#  WJetsToLNu: wjets
+
 
 
 mapping_encoding:
@@ -35,17 +36,17 @@ mapping_encoding:
     ttB: 2
     ttC: 3
     ttLF: 4
-    WJetsToLNu: 5
-    TTLL_ML_to50: 6
-    TTLL_ML_50: 6
-    TTNuNu: 6
-    TTLNu: 6
-    TTZ: 6
-    TWminus: 7
-    TWplus: 7
-    ZZ: 8
-    WZ: 8
-    WW: 8
+    TTLL_ML_to50: 5
+    TTLL_ML_50: 5
+    TTNuNu: 5
+    TTLNu: 5
+    TTZ: 5
+    TWminus: 6
+    TWplus: 6
+#    ZZ: 7
+#    WZ: 7
+#    WW: 7
+#    WJetsToLNu: 8
 
 classification:
   EVENT:
