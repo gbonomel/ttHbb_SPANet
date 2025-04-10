@@ -1,0 +1,1 @@
+python3 scripts/submit_to_condor.py --cfg jobs/config/classification_balance_weights.yaml -of options_files/ttHbb_semileptonic/jet_assignment/options_test_inclusive_run3.json -l /eos/home-g/gbonomel/tth/spanet/models/multiclassifier_Run3_weights
