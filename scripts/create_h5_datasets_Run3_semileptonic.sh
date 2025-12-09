@@ -12,8 +12,8 @@ SAMPLES_2022_23=(
         "TBbarLNuB_schannel"
         "TbarBLNuB_schannel"
         "WJetsToLNu" 
-        "DYJetsToLL_10_50"
-        "DYJetsToLL_50" 
+        #"DYJetsToLL_10_50"
+        #"DYJetsToLL_50" 
         "TTNuNu" 
         "TTLNu" 
         "TTZ"
@@ -21,7 +21,6 @@ SAMPLES_2022_23=(
 SAMPLES_2024=(
         "TWminus" 
         "TWplus"
-        "WJetsToLNu" 
         "DYto2L-PtLL_100_200_1J_PtLL_100_200_1J" 
         "DYto2L-PtLL_200_400_2J_PtLL_200_400_2J" 
         "DYto2L-PtLL_400_600_1J_PtLL_400_600_1J" 
@@ -58,9 +57,9 @@ do
     command="python /afs/cern.ch/work/g/gbonomel/higgs/ttHbb_SPANet/tthbb_spanet/scripts/dataset/parquet_to_h5.py --cfg /afs/cern.ch/work/g/gbonomel/higgs/ttHbb_SPANet/parameters/features_spanet_h5_run3_semileptonic.yaml -i ${input_files[*]} -o $output_file"
     $command
     
-    genmatched_output_file="/eos/cms/store/group/phys_higgs/ttHbb/ntuples/ttHbb_export/training_fixedwp_dec25/h5_files/tthbb_semilep_genmatched_${year}.h5"
-    command_gen="python /afs/cern.ch/work/g/gbonomel/higgs/ttHbb_SPANet/tthbb_spanet/scripts/dataset/parquet_to_h5.py --cfg /afs/cern.ch/work/g/gbonomel/higgs/ttHbb_SPANet/parameters/features_spanet_h5_run3_semileptonic.yaml -i ${genmatched_input_files[*]} -o $genmatched_output_file"
-    $command_gen
+    #genmatched_output_file="/eos/cms/store/group/phys_higgs/ttHbb/ntuples/ttHbb_export/training_fixedwp_dec25/h5_files/tthbb_semilep_genmatched_${year}.h5"
+    #command_gen="python /afs/cern.ch/work/g/gbonomel/higgs/ttHbb_SPANet/tthbb_spanet/scripts/dataset/parquet_to_h5.py --cfg /afs/cern.ch/work/g/gbonomel/higgs/ttHbb_SPANet/parameters/features_spanet_h5_run3_semileptonic.yaml -i ${genmatched_input_files[*]} -o $genmatched_output_file"
+    #$command_gen
 done
 
 for year in "2024";
@@ -86,7 +85,7 @@ do
     command="python /afs/cern.ch/work/g/gbonomel/higgs/ttHbb_SPANet/tthbb_spanet/scripts/dataset/parquet_to_h5.py --cfg /afs/cern.ch/work/g/gbonomel/higgs/ttHbb_SPANet/parameters/features_spanet_h5_run3_semileptonic.yaml -i ${input_files[*]} -o $output_file"
     $command
     
-    genmatched_output_file="/eos/cms/store/group/phys_higgs/ttHbb/ntuples/ttHbb_export/training_fixedwp_dec25/h5_files/tthbb_semilep_genmatched_${year}.h5"
-    command_gen="python /afs/cern.ch/work/g/gbonomel/higgs/ttHbb_SPANet/tthbb_spanet/scripts/dataset/parquet_to_h5.py --cfg /afs/cern.ch/work/g/gbonomel/higgs/ttHbb_SPANet/parameters/features_spanet_h5_run3_semileptonic.yaml -i ${genmatched_input_files[*]} -o $genmatched_output_file"
-    $command_gen
+    #genmatched_output_file="/eos/cms/store/group/phys_higgs/ttHbb/ntuples/ttHbb_export/training_fixedwp_dec25/h5_files/tthbb_semilep_genmatched_${year}.h5"
+    #command_gen="python /afs/cern.ch/work/g/gbonomel/higgs/ttHbb_SPANet/tthbb_spanet/scripts/dataset/parquet_to_h5.py --cfg /afs/cern.ch/work/g/gbonomel/higgs/ttHbb_SPANet/parameters/features_spanet_h5_run3_semileptonic.yaml -i ${genmatched_input_files[*]} -o $genmatched_output_file"
+    #$command_gen
 done
