@@ -1,8 +1,0 @@
-awkward<2,>=1.10.3
-coffea==0.7.22
-h5py>=3.9
-vector<1.5.0
-omegaconf
-scikit-learn
-htcondor
-pyarrow==18.0.0
