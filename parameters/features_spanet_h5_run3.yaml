@@ -23,9 +23,9 @@ mapping_sample:
   TTZ: ttv
   TWminus: singlet
   TWplus: singlet
-#  ZZ: vv
-#  WZ: vv
-#  WW: vv
+  ZZ: vv
+  WZ: vv
+  WW: vv
 #  WJetsToLNu: wjets
 
 
@@ -43,9 +43,9 @@ mapping_encoding:
     TTZ: 5
     TWminus: 6
     TWplus: 6
-#    ZZ: 7
-#    WZ: 7
-#    WW: 7
+    ZZ: 7
+    WZ: 7
+    WW: 7
 #    WJetsToLNu: 8
 
 classification:

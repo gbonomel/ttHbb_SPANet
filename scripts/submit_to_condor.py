@@ -47,12 +47,12 @@ sub = htcondor.Submit()
 if interactive:
     sub['InteractiveJob'] = True
 
-if model in ["jet_assignment", "classification", "classification_balance_weights", "test_validation_loss", "test_mdmm_loss"]:
+if model in ["jet_assignment", "classification", "classification_balance_weights", "classification_balance_weights_dileptonic" "test_validation_loss", "test_mdmm_loss"]:
     sub['Executable'] = f"{basedir}/jobs/{model}.sh"
     sub['arguments'] = f"{args.options_file} {args.log_dir}"
-    sub['Output'] = f"{basedir}/jobs/output/{model}-$(ClusterId).$(ProcId).out"
-    sub['Error'] = f"{basedir}/jobs/error/{model}-$(ClusterId).$(ProcId).err"
-    sub['Log'] = f"{basedir}/jobs/log/{model}-$(ClusterId).log"
+    sub['Output'] = f"/afs/cern.ch/user/s/sspallac/project/output/{model}-$(ClusterId).$(ProcId).out"
+    sub['Error'] = f"/afs/cern.ch/user/s/sspallac/project/error/{model}-$(ClusterId).$(ProcId).err"
+    sub['Log'] = f"/afs/cern.ch/user/s/sspallac/project/log/{model}-$(ClusterId).log"
     sub['MY.SendCredential'] = True
     sub['MY.SingularityImage'] = '"/cvmfs/unpacked.cern.ch/registry.hub.docker.com/cmsml/cmsml:latest"'
     sub['+JobFlavour'] = f'"{job_flavour}"'

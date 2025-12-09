@@ -1,0 +1,16 @@
+LICENSE
+README.md
+setup.py
+tthbb_spanet/__init__.py
+tthbb_spanet.egg-info/PKG-INFO
+tthbb_spanet.egg-info/SOURCES.txt
+tthbb_spanet.egg-info/dependency_links.txt
+tthbb_spanet.egg-info/requires.txt
+tthbb_spanet.egg-info/top_level.txt
+tthbb_spanet/lib/__init__.py
+tthbb_spanet/lib/loss.py
+tthbb_spanet/lib/dataset/__init__.py
+tthbb_spanet/lib/dataset/base.py
+tthbb_spanet/lib/dataset/dctr_dataset.py
+tthbb_spanet/lib/dataset/parquet.py
+tthbb_spanet/lib/dataset/spanet_dataset.py

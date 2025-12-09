@@ -1,0 +1,87 @@
+input:
+  Jet: [MASK, pt, eta, phi, btag, btag_L, btag_M, btag_T]
+  Lepton: [pt, eta, phi]
+  Met: [pt, eta, phi]
+  Event: [ht]
+
+collection:
+  Jet: JetGood
+  Lepton: LeptonGood
+  Met: MET
+
+particles: [t1, t2, h]
+
+mapping_sample:
+  TTH-Hto2B_v1: tthbb
+  #TTH-Hto2B_v2: tthbb 
+  TTBBto2L2Nu_4FS: ttbb
+  TTBBto2L2Nu_v1: ttbb
+  TTBBtoLNu2Q: ttbb
+  ttB: ttbb
+  ttC: ttcc
+  ttLF: ttlf
+  #TTLL_MLL-4to50: ttv
+  #TTLL_MLL-50: ttv
+  #TTNuNu: ttv
+  #TTLNu: ttv
+  #TTZ-ZtoQQ: ttv
+  TWminus: singlet 
+  TbarWplus: singlet
+  #ZZto2L2Nu: vv
+  #WZto3LNu: vv
+  #WZto2L2Q: vv
+  #WWto2L2Nu: vv
+# # WJetsToLNu: wjets
+  #DYto2E_Bin-MLL-10to50: zjets
+  #DYto2E-2Jets_Bin-MLL-50: zjets
+  #DYto2Mu-2Jets_Bin-MLL-50: zjets
+  #DYto2Tau-2Jets_Bin-MLL-50: zjets
+  #WtoENu-4Jets: wjets
+  #WtoMuNu-4Jets: wjets
+  #WtoTauNu-4Jets: wjets
+
+
+
+mapping_encoding:
+  signal:
+    TTH-Hto2B_v1: 1
+    #TTH-Hto2B_v2: 1
+    TTBBto2L2Nu_v1: 2
+    TTBBto2L2Nu_4FS: 2
+    TTBBtoLNu2Q: 2
+    ttB: 2
+    ttC: 3
+    ttLF: 4
+    #TTLL_MLL-4to50: 5
+    #TTLL_MLL-50: 5
+    #TTNuNu: 5
+    #TTLNu: 5
+    #TTZ-ZtoQQ: 5 
+    TWminus: 5
+    TbarWplus: 5
+    #ZZto2L2Nu: 6
+    #WZto3LNu: 6
+    #WZto2L2Q: 6
+    #WWto2L2Nu: 6
+    #DYto2E_Bin-MLL-10to50: 7
+    #DYto2E-2Jets_Bin-MLL-50: 7
+    #DYto2Mu-2Jets_Bin-MLL-50: 7
+    #DYto2Tau-2Jets_Bin-MLL-50: 7
+    #WtoENu-4Jets: 7
+    #WtoMuNu-4Jets: 7
+    #WtoTauNu-4Jets: 7
+#   WJetsToLNu: 8
+
+classification:
+  EVENT:
+#    - tthbb
+#    - ttbb
+#    - ttcc
+#    - ttlf
+#    - wjets
+#    - ttv
+#    - singlet
+#    - vv
+    - signal
+
+test_size: 0.2

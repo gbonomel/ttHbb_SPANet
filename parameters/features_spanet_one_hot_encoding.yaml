@@ -12,17 +12,17 @@ collection:
 particles: [t1, t2, h]
 
 mapping_sample:
-  ttHTobb: tthbb
-  tt+B: ttbb
-  tt+C: ttcc
-  tt+LF: ttlf
+  TTH_HTo2B: tthbb
+  ttB: ttbb
+  ttC: ttcc
+  ttLF: ttlf
 
 mapping_encoding:
   signal:
-    ttHTobb: 1
-    tt+B: 2
-    tt+C: 3
-    tt+LF: 4
+    TTH_HTo2B: 1
+    ttB: 2
+    ttC: 3
+    ttLF: 4
 
 classification:
   EVENT:

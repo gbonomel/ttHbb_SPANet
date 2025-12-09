@@ -1,5 +1,5 @@
-path: /afs/cern.ch/work/g/gbonomel/higgs/ttHbb_SPANet
-model: classification_assignment
-job_flavour: tomorrow
+path: /afs/cern.ch/user/s/sspallac/project/ttHbb_SPANet
+model: classification_balance_weights
+job_flavour: nextweek
 ngpu: 1
-ncpu: 4
+ncpu: 3

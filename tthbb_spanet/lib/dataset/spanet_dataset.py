@@ -7,6 +7,7 @@ import awkward as ak
 import h5py
 
 from .base import Dataset
+import gc
 
 # Inherited from https://github.com/Alexanders101/SPANet/blob/master/spanet/dataset/types.py
 class SpecialKey(str, Enum):
@@ -77,6 +78,20 @@ class SPANetDataset(Dataset):
         for group in self.classification_targets:
             self.file.create_group(f"{SpecialKey.Classifications.value}/{group}")
 
+    
+
+    def create_classifications(self, df):
+        '''Create the classification targets in the h5 file.'''
+        for group, targets in self.classification_targets.items():
+            for target in targets:
+                if group == SpecialKey.Event.value:
+                    try:
+                        values = df[target]
+                    except:
+                        raise Exception(f"Target {target} not found in the dataframe.")
+                    self.file.create_dataset(f"{SpecialKey.Classifications.value}/{group}/{target}", np.shape(values), dtype='int64', data=values)
+                else:
+                    raise NotImplementedError
     def create_targets(self, df):
         jets = df[self.collection["Jet"]]
         indices = ak.local_index(jets)
@@ -129,24 +144,12 @@ class SPANetDataset(Dataset):
             else:
                 raise NotImplementedError
 
-    def create_classifications(self, df):
-        '''Create the classification targets in the h5 file.'''
-        for group, targets in self.classification_targets.items():
-            for target in targets:
-                if group == SpecialKey.Event.value:
-                    try:
-                        values = df[target]
-                    except:
-                        raise Exception(f"Target {target} not found in the dataframe.")
-                    self.file.create_dataset(f"{SpecialKey.Classifications.value}/{group}/{target}", np.shape(values), dtype='int64', data=values)
-                else:
-                    raise NotImplementedError
-
     def create_weights(self, df):
         '''Create the weights in the h5 file.'''
         weights = df.event.weight
         print("Creating dataset: ", f"{SpecialKey.Weights.value}/weight")
         self.file.create_dataset(f"{SpecialKey.Weights.value}/weight", np.shape(weights), dtype='float32', data=weights)
+        print(f"SpecialKey.Weights.value = {SpecialKey.Weights.value}")
 
     def create_inputs(self, df):
         '''Create the input arrays in the h5 file.'''
@@ -232,6 +235,14 @@ class SPANetDataset(Dataset):
 
     def save(self, output_file):
         '''Save the h5 file for both the training and testing datasets.'''
+        print(f"Total dataframe length: {len(self.df)}")
+        print(f"test_size config: {self.test_size}")
+        print(f"n_train: {self.n_train}")
+        print(f"Train length: {len(self.train)}")
+        print(f"Test length: {len(self.test)}")
+        print(f"Train shape: {self.train}")
+        print(f"Test shape: {self.test}")
+
         for dataset_type in ["train", "test"]:
             print(f"Processing dataset: {dataset_type} ({len(getattr(self, dataset_type))} events)")
 
@@ -250,3 +261,47 @@ class SPANetDataset(Dataset):
             print(self.file)
             self.print()
             self.file.close()
+    
+    #def save(self, output_file, events_per_file=2000000):
+    #    '''Save the h5 files for both training and testing datasets, splitting into smaller files.
+    #    
+    #    Args:
+    #        output_file: Base output file path
+    #        events_per_file: Maximum number of events per file (default: 2M)
+    #    '''
+    #    for dataset_type in ["train", "test"]:
+    #        df = getattr(self, dataset_type)
+    #        print(f"\nProcessing dataset: {dataset_type} ({len(df)} events)")
+    #        
+    #        if len(df) == 0:
+    #            print(f"Skipping {dataset_type} - empty dataset")
+    #            continue
+    #        
+    #        # Calculate number of files needed
+    #        n_files = (len(df) + events_per_file - 1) // events_per_file
+    #        print(f"Will create {n_files} files with up to {events_per_file} events each")
+    #        
+    #        # Split into multiple files
+    #        for file_idx in range(n_files):
+    #            start_idx = file_idx * events_per_file
+    #            end_idx = min((file_idx + 1) * events_per_file, len(df))
+    #            df_chunk = df[start_idx:end_idx]
+    #            
+    #            # Create filename with chunk info
+    #            output_file_custom = output_file.replace(".h5", f"_{dataset_type}_part{file_idx}_{len(df_chunk)}.h5")
+    #            self.check_output(output_file_custom)
+    #            
+    #            print(f"  File {file_idx+1}/{n_files}: Creating {output_file_custom} ({len(df_chunk)} events)")
+    #            
+    #            self.file = h5py.File(output_file_custom, "w")
+    #            self.create_groups()
+    #            if not self.has_data:
+    #                self.create_targets(df_chunk)
+    #            self.create_classifications(df_chunk)
+    #            self.create_inputs(df_chunk)
+    #            self.create_weights(df_chunk)
+    #            self.file.close()
+    #            
+    #            print(f"  ✓ Completed {output_file_custom}")
+    #        
+    #        print(f"Finished {dataset_type}: created {n_files} files")
