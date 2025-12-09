@@ -59,11 +59,10 @@ def copy_data_recursive(input_group, output_file, structure, offset, input_path=
         elif isinstance(item, h5py.Group):
             copy_data_recursive(item, output_file, structure, offset, current_path)
 
-def shuffle_h5_inplace(file_path, num_entries, chunk_size=10000):
+def shuffle_h5_inplace(file_path, num_entries, chunk_size=100000):
     """Shuffle the data in the h5 file in place using chunked operations."""
     print("Shuffling the data...")
-    
-    # Generate shuffled indices
+
     shuffled_indices = np.random.permutation(num_entries)
     
     # Get all dataset paths
