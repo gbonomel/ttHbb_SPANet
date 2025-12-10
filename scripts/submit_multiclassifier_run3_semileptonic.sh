@@ -1,0 +1,1 @@
+python3 scripts/submit_to_condor.py --cfg jobs/config/classification_assignment_balance_weights.yaml -of /afs/cern.ch/work/g/gbonomel/higgs/ttHbb_SPANet/option_files/ttHbb_semileptonic/classification_assignment/option_best_medium_Run3.json -l /afs/cern.ch/work/g/gbonomel/higgs/ttHbb/spanet/training_fixedwp_dec25/medium_model_spanet --ncpu 6

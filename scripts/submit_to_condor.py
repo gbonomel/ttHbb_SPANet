@@ -34,6 +34,7 @@ model = cfg['model']
 job_flavour = cfg['job_flavour']
 ngpu = cfg['ngpu']
 ncpu = cfg['ncpu']
+logdir = args.log_dir
 
 # Override defaults by command line arguments
 if args.ngpu != parser.get_default("ngpu"):
@@ -47,12 +48,12 @@ sub = htcondor.Submit()
 if interactive:
     sub['InteractiveJob'] = True
 
-if model in ["jet_assignment", "classification", "classification_balance_weights", "classification_balance_weights_dileptonic" "test_validation_loss", "test_mdmm_loss"]:
+if model in ["jet_assignment", "classification", "classification_assignment", "classification_balance_weights", "classification_balance_weights_dileptonic", "classification_balance_weights_semileptonic", "test_validation_loss", "test_mdmm_loss"]:
     sub['Executable'] = f"{basedir}/jobs/{model}.sh"
     sub['arguments'] = f"{args.options_file} {args.log_dir}"
-    sub['Output'] = f"/afs/cern.ch/user/s/sspallac/project/output/{model}-$(ClusterId).$(ProcId).out"
-    sub['Error'] = f"/afs/cern.ch/user/s/sspallac/project/error/{model}-$(ClusterId).$(ProcId).err"
-    sub['Log'] = f"/afs/cern.ch/user/s/sspallac/project/log/{model}-$(ClusterId).log"
+    sub['Output'] = f"{logdir}/jobs/output/{model}-$(ClusterId).$(ProcId).out"
+    sub['Error']  = f"{logdir}/jobs/error/{model}-$(ClusterId).$(ProcId).err"
+    sub['Log']    = f"{logdir}/jobs/log/{model}-$(ClusterId).log"
     sub['MY.SendCredential'] = True
     sub['MY.SingularityImage'] = '"/cvmfs/unpacked.cern.ch/registry.hub.docker.com/cmsml/cmsml:latest"'
     sub['+JobFlavour'] = f'"{job_flavour}"'
