@@ -59,31 +59,46 @@ def copy_data_recursive(input_group, output_file, structure, offset, input_path=
         elif isinstance(item, h5py.Group):
             copy_data_recursive(item, output_file, structure, offset, current_path)
 
-def collect_dataset_paths(group, path=""):
-    """Get all dataset paths in the file."""
-    paths = []
-    for key, item in group.items():
-        current_path = f"{path}/{key}" if path else key
-        if isinstance(item, h5py.Dataset):
-            paths.append(current_path)
-        elif isinstance(item, h5py.Group):
-            paths.extend(collect_dataset_paths(item, current_path))
-    return paths
-
-def shuffle_h5_inplace(file_path, num_entries):
-    """Shuffle all datasets using the same random permutation."""
+def shuffle_h5_inplace(file_path, num_entries, chunk_size=100000):
+    """Shuffle the data in the h5 file in place using chunked operations."""
     print("Shuffling the data...")
+
     shuffled_indices = np.random.permutation(num_entries)
     
+    # Get all dataset paths
+    dataset_paths = []
+    with h5py.File(file_path, 'r') as f:
+        def collect_datasets(group, path=""):
+            for key, item in group.items():
+                current_path = f"{path}/{key}" if path else key
+                if isinstance(item, h5py.Dataset):
+                    dataset_paths.append(current_path)
+                elif isinstance(item, h5py.Group):
+                    collect_datasets(item, current_path)
+        collect_datasets(f)
+    
+    # Shuffle each dataset
     with h5py.File(file_path, 'r+') as f:
-        dataset_paths = collect_dataset_paths(f)
-        
         for idx, dataset_path in enumerate(dataset_paths):
-            print(f"  Shuffling {idx+1}/{len(dataset_paths)}: {dataset_path}")
+            print(f"  Shuffling dataset {idx+1}/{len(dataset_paths)}: {dataset_path}")
             dataset = f[dataset_path]
+            
+            # Create temporary array to hold shuffled data
+            temp_data = np.empty_like(dataset)
+            
+            # Read sequentially in chunks and write to shuffled positions
+            for i in range(0, num_entries, chunk_size):
+                end = min(i + chunk_size, num_entries)
+                # Read original chunk
+                chunk = dataset[i:end]
+                # Write to shuffled positions
+                temp_data[shuffled_indices[i:end]] = chunk
+            
+            # Write back the shuffled data
+            dataset[:] = temp_data
+            del temp_data  # Free memory
 
-            shuffled_data = dataset[shuffled_indices]
-            dataset[:] = shuffled_data
+
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-i", "--input", nargs="+", help="Input h5 files", required=True)
