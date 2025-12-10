@@ -12,19 +12,19 @@ collection:
 particles: [t1, t2, h]
 
 mapping_sample:
-  TTH-Hto2B_v1: tthbb
-  #TTH-Hto2B_v2: tthbb 
-  TTBBto2L2Nu_4FS: ttbb
-  TTBBto2L2Nu_v1: ttbb
-  TTBBtoLNu2Q: ttbb
+  TTH_Hto2B_v1: tthbb
+  TTH_Hto2B_v2: tthbb 
+  #TTBBto2L2Nu_4FS: ttbb
+  #TTBBto2L2Nu_v1: ttbb
+  #TTBBtoLNu2Q: ttbb
   ttB: ttbb
   ttC: ttcc
   ttLF: ttlf
-  #TTLL_MLL-4to50: ttv
-  #TTLL_MLL-50: ttv
-  #TTNuNu: ttv
-  #TTLNu: ttv
-  #TTZ-ZtoQQ: ttv
+  TTLL_MLL-4to50: ttv
+  TTLL_MLL-50: ttv
+  TTNuNu: ttv
+  TTLNu: ttv
+  TTZ-ZtoQQ: ttv
   TWminus: singlet 
   TbarWplus: singlet
   #ZZto2L2Nu: vv
@@ -44,19 +44,19 @@ mapping_sample:
 
 mapping_encoding:
   signal:
-    TTH-Hto2B_v1: 1
-    #TTH-Hto2B_v2: 1
-    TTBBto2L2Nu_v1: 2
-    TTBBto2L2Nu_4FS: 2
-    TTBBtoLNu2Q: 2
+    TTH_Hto2B_v1: 1
+    TTH_Hto2B_v2: 1
+    #TTBBto2L2Nu_v1: 2
+    #TTBBto2L2Nu_4FS: 2
+    #TTBBtoLNu2Q: 2
     ttB: 2
     ttC: 3
     ttLF: 4
-    #TTLL_MLL-4to50: 5
-    #TTLL_MLL-50: 5
-    #TTNuNu: 5
-    #TTLNu: 5
-    #TTZ-ZtoQQ: 5 
+    TTLL_MLL-4to50: 6
+    TTLL_MLL-50: 6
+    TTNuNu: 6
+    TTLNu: 6
+    TTZ-ZtoQQ: 6 
     TWminus: 5
     TbarWplus: 5
     #ZZto2L2Nu: 6

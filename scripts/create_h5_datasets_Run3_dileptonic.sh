@@ -1,8 +1,7 @@
 #!/bin/bash
 
-BASE_DIR=/eos/user/s/sspallac/spanet_export/parquet_overall/24_puppi
-years=("2024")
-#("2022_preEE" "2022_postEE" "2023_preBPix" "2023_postBPix")
+BASE_DIR=/eos/user/s/sspallac/spanet_export/parquet_overall/single_wp
+years=("2022_preEE" "2022_postEE" "2023_preBPix" "2023_postBPix")
 
 for year in ${years[@]};
 do
@@ -12,11 +11,11 @@ do
     samples=(
         "TbarWplus"
         "TWminus" 
-        #"TTLL_MLL-50"
-        #"TTLL_MLL-4to50"
-        #"TTNuNu"
-        #"TTLNu"
-        #"TTZ-ZtoQQ"
+        "TTLL_MLL-50"
+        "TTLL_MLL-4to50"
+        "TTNuNu"
+        "TTLNu"
+        "TTZ-ZtoQQ"
         #"DYto2E_Bin-MLL-10to50" 
         #"DYto2E-2Jets_Bin-MLL-50"
         #"DYto2Mu-2Jets_Bin-MLL-50"
@@ -38,10 +37,10 @@ do
         "TTTo2L2Nu_ttB"
         "TTTo2L2Nu_ttC"
         "TTTo2L2Nu_ttLF"
-        "TTH-Hto2B_v1_signal"
-        #"TTH_Hto2B_v2_signal"
-        "TTH-Hto2B_v1_background"
-        #"TTH_Hto2B_v2_background"
+        "TTH_Hto2B_v1_signal"
+        "TTH_Hto2B_v2_signal"
+        "TTH_Hto2B_v1_background"
+        "TTH_Hto2B_v2_background"
         "TTBBtoLNu2Q_ttB"
         "TTBBtoLNu2Q_ttC"
         "TTBBtoLNu2Q_ttLF"
@@ -66,7 +65,7 @@ do
     
     # Only run if we have at least one input file
     if [ ${#input_files[@]} -gt 0 ]; then
-        output_file="/eos/user/s/sspallac/spanet_export/h5_files/24_puppi/h5_files_${year}.h5"
+        output_file="/eos/user/s/sspallac/spanet_export/h5_files/single_wp/h5_files_${year}.h5"
         echo "Processing year $year with ${#input_files[@]} files"
         python /afs/cern.ch/work/s/sspallac/private/project/ttHbb_SPANet/tthbb_spanet/scripts/dataset/parquet_to_h5.py \
             --cfg /afs/cern.ch/work/s/sspallac/private/project/ttHbb_SPANet/parameters/features_spanet_h5_run3_dileptonic.yaml \

@@ -1,6 +1,6 @@
 #!/bin/bash
-SPANET_DIR=/afs/cern.ch/user/s/sspallac/project/SPANet_sspallacc
-TTHBB_SPANET_DIR=/afs/cern.ch/user/s/sspallac/project/ttHbb_SPANet
+SPANET_DIR=/afs/cern.ch/work/s/sspallac/private/project/SPANet_sspallacc
+TTHBB_SPANET_DIR=/afs/cern.ch/work/s/sspallac/private/project/ttHbb_SPANet
 NUM_GPU=1
 
 # Create venv in local job dir

@@ -5,7 +5,7 @@ features:
       pt: pt
       eta: eta
       phi: phi
-      btag: btagRobustParTAK4B #btagUParTAK4B 
+      btag: btagUParTAK4B 
       hadronFlavour: hadronFlavour
       btag_L: btag_L
       btag_M: btag_M
@@ -68,7 +68,7 @@ features:
         pt: pt
         eta: eta
         phi: phi
-        btag: btagRobustParTAK4B #btagUParTAK4B
+        btag: btagUParTAK4B
         hadronFlavour: hadronFlavour
         prov: provenance
         dRMatchedJet: dRMatchedJet
@@ -162,7 +162,7 @@ features:
         pt: pt
         eta: eta
         phi: phi
-        btag: btagRobustParTAK4B #btagUParTAK4B
+        btag: btagUParTAK4B
         hadronFlavour: hadronFlavour
         prov: provenance
         dRMatchedJet: dRMatchedJet

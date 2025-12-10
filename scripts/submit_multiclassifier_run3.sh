@@ -1,1 +1,1 @@
-python3 scripts/submit_to_condor.py --cfg jobs/config/classification_balance_weights.yaml -of /eos/user/s/sspallac/SPANET_sem_project/options/options_med.json -l /eos/user/s/sspallac/spanet_dileptonic/24_single_wp
+python3 scripts/submit_to_condor.py --cfg jobs/config/classification_balance_weights.yaml -of /eos/user/s/sspallac/SPANET_sem_project/options/options_med.json -l /eos/user/s/sspallac/spanet_dileptonic/single_wp --ngpu 1 --ncpu 8
