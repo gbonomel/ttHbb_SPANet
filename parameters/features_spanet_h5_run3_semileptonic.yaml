@@ -27,17 +27,17 @@ mapping_sample:
   TbarBQ_tchannel: singlet
   TBbarLNuB_schannel: singlet
   TbarBLNuB_schannel: singlet
-  ZZ: vv
-  WZ: vv
-  WW: vv
-  WJetsToLNu: vjets
-  DYJetsToLL_10_50: vjets
-  DYto2L-PtLL_100_200_1J_PtLL_100_200_1J: vjets 
-  DYto2L-PtLL_200_400_2J_PtLL_200_400_2J: vjets
-  DYto2L-PtLL_400_600_1J_PtLL_400_600_1J: vjets
-  DYto2L-PtLL_400_600_2J_PtLL_400_600_2J: vjets
-  DYto2L-PtLL_600_1J_PtLL_600_1J: vjets
-  DYto2L-PtLL_600_2J_PtLL_600_2J: vjets
+  #ZZ: vv
+  #WZ: vv
+  #WW: vv
+  #WJetsToLNu: vjets
+  #DYJetsToLL_10_50: vjets
+  #DYto2L-PtLL_100_200_1J_PtLL_100_200_1J: vjets 
+  #DYto2L-PtLL_200_400_2J_PtLL_200_400_2J: vjets
+  #DYto2L-PtLL_400_600_1J_PtLL_400_600_1J: vjets
+  #DYto2L-PtLL_400_600_2J_PtLL_400_600_2J: vjets
+  #DYto2L-PtLL_600_1J_PtLL_600_1J: vjets
+  #DYto2L-PtLL_600_2J_PtLL_600_2J: vjets
 
 
 
@@ -58,17 +58,17 @@ mapping_encoding:
     TbarBQ_tchannel: 6
     TBbarLNuB_schannel: 6
     TbarBLNuB_schannel: 6
-    ZZ: 7
-    WZ: 7
-    WW: 7
-    WJetsToLNu: 8
-    DYJetsToLL_10_50: 8
-    DYto2L-PtLL_100_200_1J_PtLL_100_200_1J: 8 
-    DYto2L-PtLL_200_400_2J_PtLL_200_400_2J: 8
-    DYto2L-PtLL_400_600_1J_PtLL_400_600_1J: 8
-    DYto2L-PtLL_400_600_2J_PtLL_400_600_2J: 8
-    DYto2L-PtLL_600_1J_PtLL_600_1J: 8
-    DYto2L-PtLL_600_2J_PtLL_600_2J: 8
+    #WJetsToLNu: 7
+    #DYJetsToLL_10_50: 7
+    #DYto2L-PtLL_100_200_1J_PtLL_100_200_1J: 7 
+    #DYto2L-PtLL_200_400_2J_PtLL_200_400_2J: 7
+    #DYto2L-PtLL_400_600_1J_PtLL_400_600_1J: 7
+    #DYto2L-PtLL_400_600_2J_PtLL_400_600_2J: 7
+    #DYto2L-PtLL_600_1J_PtLL_600_1J: 7
+    #DYto2L-PtLL_600_2J_PtLL_600_2J: 7
+    #ZZ: 8
+    #WZ: 8
+    #WW: 8
 
 classification:
   EVENT:
@@ -82,4 +82,4 @@ classification:
 #    - vv
     - signal
 
-frac_train: 0.8
+frac_train: 0.7

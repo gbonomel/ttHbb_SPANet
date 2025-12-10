@@ -1,32 +1,43 @@
 #!/bin/bash
 BASE_DIR=/afs/cern.ch/work/g/gbonomel/higgs/ttHbb_SPANet
-RUN_DIR=/afs/cern.ch/work/g/gbonomel/higgs/ttHbb/spanet/non_semilep_cut
-EOS_DIR=/eos/cms/store/group/phys_higgs/ttHbb/ntuples/non_semileptonic_tthbb_export
+RUN_DIR=/afs/cern.ch/work/g/gbonomel/higgs/ttHbb/spanet/training_fixedwp_dec25
+EOS_DIR=/eos/cms/store/group/phys_higgs/ttHbb/ntuples/ttHbb_export/training_fixedwp_dec25
+MINORBK_2022_23=("TWminus" "TWplus" "TbarBLNuB_schannel" "TbarBQ_tchannel" "TBbarLNuB_schannel" "TBbarQ_tchannel" "WJetsToLNu" "DYto2L-2Jets_MLL-10to50" "DYto2L-2Jets_MLL-50" "TTLL_ML_to50" "TTLL_ML_50" "TTNuNu" "TTLNu" "TTZ") # WW, ZZ, WZ
+MINORBK_2024=("TWminus" "TWplus" "WJetsToLNu" "DYto2L-PtLL_100_200_1J_PtLL_100_200_1J" "DYto2L-PtLL_200_400_2J_PtLL_200_400_2J" "DYto2L-PtLL_400_600_1J_PtLL_400_600_1J" "DYto2L-PtLL_400_600_2J_PtLL_400_600_2J" "DYto2L-PtLL_600_1J_PtLL_600_1J" "DYto2L-PtLL_600_2J_PtLL_600_2J" "TTLL_ML_to50" "TTLL_ML_50")
+TTBAR=("TTTo2L2Nu" "TTToLNu2Q" "TTBBtoLNu2Q_4FS" "TTHtoNon2B")
+SUBSAMPLES=("ttB" "ttC" "ttLF")
+CAT=baseline
 
 # Save ttHTobb_ttToSemiLep datasets to parquet
 for YEAR in 2022_preEE 2022_postEE 2023_preBPix 2023_postBPix
-do 
-    #python /afs/cern.ch/work/g/gbonomel/higgs/SPANet_ETH/tthbb_spanet/scripts/dataset/coffea_to_parquet.py --cfg /afs/cern.ch/work/g/gbonomel/higgs/SPANet_ETH/parameters/features_run3.yaml -i $RUN_DIR/output_coffea_non_semilep/output_WJetsToLNu_${YEAR}.coffea -o /eos/cms/store/group/phys_higgs/ttHbb/ntuples/non_semileptonic_tthbb_export/parquet_overall_2/provaWjets_${YEAR}.parquet --dataset WJetsToLNu_${YEAR} --ntuples /eos/cms/store/group/phys_higgs/ttHbb/ntuples/non_semileptonic_tthbb_export/WJetsToLNu_${YEAR}/baseline
-    python $BASE_DIR/tthbb_spanet/scripts/dataset/coffea_to_parquet.py --cfg $BASE_DIR/parameters/features_run3.yaml -i $RUN_DIR/output_coffea_non_semilep/output_TTHtoNon2B_${YEAR}.coffea -o $EOS_DIR/parquet_overall_2/TTHtoNon2B_${YEAR}.parquet --dataset TTHtoNon2B_${YEAR} --ntuples $EOS_DIR/TTHtoNon2B_${YEAR}/baseline    
-    python $BASE_DIR/tthbb_spanet/scripts/dataset/coffea_to_parquet.py --cfg $BASE_DIR/parameters/features_run3.yaml -i $RUN_DIR/output_coffea_non_semilep/output_TWminus_${YEAR}.coffea -o $EOS_DIR/parquet_overall_2/TWminus_${YEAR}.parquet --dataset TWminus_${YEAR} --ntuples $EOS_DIR/TWminus_${YEAR}/baseline
-    python $BASE_DIR/tthbb_spanet/scripts/dataset/coffea_to_parquet.py --cfg $BASE_DIR/parameters/features_run3.yaml -i $RUN_DIR/output_coffea_non_semilep/output_TWplus_${YEAR}.coffea -o $EOS_DIR/parquet_overall_2/TWplus_${YEAR}.parquet --dataset TWplus_${YEAR} --ntuples $EOS_DIR/TWplus_${YEAR}/baseline
-    python $BASE_DIR/tthbb_spanet/scripts/dataset/coffea_to_parquet.py --cfg $BASE_DIR/parameters/features_run3.yaml -i $RUN_DIR/output_coffea_non_semilep/output_WJetsToLNu_${YEAR}.coffea -o $EOS_DIR/parquet_overall_2/WJetsToLNu_${YEAR}.parquet --dataset WJetsToLNu_${YEAR} --ntuples $EOS_DIR/WJetsToLNu_${YEAR}/baseline
-    #python $BASE_DIR/tthbb_spanet/scripts/dataset/coffea_to_parquet.py --cfg $BASE_DIR/parameters/features_run3.yaml -i $RUN_DIR/output_coffea_non_semilep/output_ZZ_${YEAR}.coffea -o $EOS_DIR/parquet_overall_2/ZZ_${YEAR}.parquet --dataset ZZ_${YEAR} --ntuples $EOS_DIR/ZZ_${YEAR}/baseline
-    #python $BASE_DIR/tthbb_spanet/scripts/dataset/coffea_to_parquet.py --cfg $BASE_DIR/parameters/features_run3.yaml -i $RUN_DIR/output_coffea_non_semilep/output_WW_${YEAR}.coffea -o $EOS_DIR/parquet_overall_2/WW_${YEAR}.parquet --dataset WW_${YEAR} --ntuples $EOS_DIR/WW_${YEAR}/baseline
-    #python $BASE_DIR/tthbb_spanet/scripts/dataset/coffea_to_parquet.py --cfg $BASE_DIR/parameters/features_run3.yaml -i $RUN_DIR/output_coffea_non_semilep/output_WZ_${YEAR}.coffea -o $EOS_DIR/parquet_overall_2/WZ_${YEAR}.parquet --dataset WZ_${YEAR} --ntuples $EOS_DIR/WZ_${YEAR}/baseline
-    python $BASE_DIR/tthbb_spanet/scripts/dataset/coffea_to_parquet.py --cfg $BASE_DIR/parameters/features_run3.yaml -i $RUN_DIR/output_coffea_non_semilep/output_TTLL_ML_to50_${YEAR}.coffea -o $EOS_DIR/parquet_overall_2/TTLL_ML_to50_${YEAR}.parquet --dataset TTLL_ML_to50_${YEAR} --ntuples $EOS_DIR/TTLL_ML_to50_${YEAR}/baseline
-    python $BASE_DIR/tthbb_spanet/scripts/dataset/coffea_to_parquet.py --cfg $BASE_DIR/parameters/features_run3.yaml -i $RUN_DIR/output_coffea_non_semilep/output_TTLL_ML_50_${YEAR}.coffea -o $EOS_DIR/parquet_overall_2/TTLL_ML_50_${YEAR}.parquet --dataset TTLL_ML_50_${YEAR} --ntuples $EOS_DIR/TTLL_ML_50_${YEAR}/baseline
-    python $BASE_DIR/tthbb_spanet/scripts/dataset/coffea_to_parquet.py --cfg $BASE_DIR/parameters/features_run3.yaml -i $RUN_DIR/output_coffea_non_semilep/output_TTNuNu_${YEAR}.coffea -o $EOS_DIR/parquet_overall_2/TTNuNu_${YEAR}.parquet --dataset TTNuNu_${YEAR} --ntuples $EOS_DIR/TTNuNu_${YEAR}/baseline
-    python $BASE_DIR/tthbb_spanet/scripts/dataset/coffea_to_parquet.py --cfg $BASE_DIR/parameters/features_run3.yaml -i $RUN_DIR/output_coffea_non_semilep/output_TTLNu_${YEAR}.coffea -o $EOS_DIR/parquet_overall_2/TTLNu_${YEAR}.parquet --dataset TTLNu_${YEAR} --ntuples $EOS_DIR/TTLNu_${YEAR}/baseline
-    python $BASE_DIR/tthbb_spanet/scripts/dataset/coffea_to_parquet.py --cfg $BASE_DIR/parameters/features_run3.yaml -i $RUN_DIR/output_coffea_non_semilep/output_TTZ_${YEAR}.coffea -o $EOS_DIR/parquet_overall_2/TTZ_${YEAR}.parquet --dataset TTZ_${YEAR} --ntuples $EOS_DIR/TTZ_${YEAR}/baseline
-    ## ttbar semilepton and dilepton are split in subsamples ttLF, ttB, ttC
-    python $BASE_DIR/tthbb_spanet/scripts/dataset/coffea_to_parquet.py --cfg $BASE_DIR/parameters/features_run3.yaml -i $RUN_DIR/output_coffea_non_semilep/output_TTTo2L2Nu_${YEAR}.coffea -o $EOS_DIR/parquet_overall_2/TTTo2L2Nu_ttLF_${YEAR}.parquet --dataset TTTo2L2Nu_${YEAR} --ntuples $EOS_DIR/TTTo2L2Nu_${YEAR}/ttLF/baseline
-    python $BASE_DIR/tthbb_spanet/scripts/dataset/coffea_to_parquet.py --cfg $BASE_DIR/parameters/features_run3.yaml -i $RUN_DIR/output_coffea_non_semilep/output_TTTo2L2Nu_${YEAR}.coffea -o $EOS_DIR/parquet_overall_2/TTTo2L2Nu_ttB_${YEAR}.parquet --dataset TTTo2L2Nu_${YEAR} --ntuples $EOS_DIR/TTTo2L2Nu_${YEAR}/ttB/baseline
-    python $BASE_DIR/tthbb_spanet/scripts/dataset/coffea_to_parquet.py --cfg $BASE_DIR/parameters/features_run3.yaml -i $RUN_DIR/output_coffea_non_semilep/output_TTTo2L2Nu_${YEAR}.coffea -o $EOS_DIR/parquet_overall_2/TTTo2L2Nu_ttC_${YEAR}.parquet --dataset TTTo2L2Nu_${YEAR} --ntuples $EOS_DIR/TTTo2L2Nu_${YEAR}/ttC/baseline
-    python $BASE_DIR/tthbb_spanet/scripts/dataset/coffea_to_parquet.py --cfg $BASE_DIR/parameters/features_run3.yaml -i $RUN_DIR/output_coffea_non_semilep/output_TTToLNu2Q_${YEAR}.coffea -o $EOS_DIR/parquet_overall_2/TTToLNu2Q_ttLF_${YEAR}.parquet --dataset TTToLNu2Q_${YEAR} --ntuples $EOS_DIR/TTToLNu2Q_${YEAR}/ttLF/baseline
-    python $BASE_DIR/tthbb_spanet/scripts/dataset/coffea_to_parquet.py --cfg $BASE_DIR/parameters/features_run3.yaml -i $RUN_DIR/output_coffea_non_semilep/output_TTToLNu2Q_${YEAR}.coffea -o $EOS_DIR/parquet_overall_2/TTToLNu2Q_ttB_${YEAR}.parquet --dataset TTToLNu2Q_${YEAR} --ntuples $EOS_DIR/TTToLNu2Q_${YEAR}/ttB/baseline
-    python $BASE_DIR/tthbb_spanet/scripts/dataset/coffea_to_parquet.py --cfg $BASE_DIR/parameters/features_run3.yaml -i $RUN_DIR/output_coffea_non_semilep/output_TTToLNu2Q_${YEAR}.coffea -o $EOS_DIR/parquet_overall_2/TTToLNu2Q_ttC_${YEAR}.parquet --dataset TTToLNu2Q_${YEAR} --ntuples $EOS_DIR/TTToLNu2Q_${YEAR}/ttC/baseline
+do
+    # ttHbb sample divided in semileptonic (containing genmatching) and non_semilep 
+    python $BASE_DIR/tthbb_spanet/scripts/dataset/coffea_to_parquet.py --cfg $BASE_DIR/parameters/features_run3_22_23.yaml -i $RUN_DIR/output_coffea_non_semilep/output_TTH_Hto2B_${YEAR}.coffea -o $EOS_DIR/parquet_overall/TTH_Hto2B_nonsemilep_${YEAR}.parquet --dataset TTH_Hto2B_${YEAR} --ntuples $EOS_DIR/non_semilep_ttHbb/TTH_Hto2B_${YEAR}/non_semilep/baseline --cat ${CAT}
+    python $BASE_DIR/tthbb_spanet/scripts/dataset/coffea_to_parquet.py --cfg $BASE_DIR/parameters/features_run3_genmatched_22_23.yaml -i $RUN_DIR/output_coffea_semilep/output_TTH_Hto2B_${YEAR}.coffea -o $EOS_DIR/parquet_overall/TTH_Hto2B_genmatching_${YEAR}.parquet --dataset TTH_Hto2B_${YEAR} --ntuples $EOS_DIR/semilep_ttHbb_genmatched/TTH_Hto2B_${YEAR}/baseline --cat ${CAT}
+    for SAMPLE in "${MINORBK_2022_23[@]}"; do
+        python $BASE_DIR/tthbb_spanet/scripts/dataset/coffea_to_parquet.py --cfg $BASE_DIR/parameters/features_run3_22_23.yaml -i $RUN_DIR/output_coffea_non_semilep/output_${SAMPLE}_${YEAR}.coffea -o $EOS_DIR/parquet_overall/${SAMPLE}_${YEAR}.parquet --dataset ${SAMPLE}_${YEAR} --ntuples $EOS_DIR/non_semilep_ttHbb/${SAMPLE}_${YEAR}/baseline --cat ${CAT}
+    done
+    # ttbar semilepton, dilepton, 4FS and tthnon2b are split in subsamples ttLF, ttB, ttC
+    for SAMPLE_TTBAR in "${TTBAR[@]}"; do
+        for SUBSAMPLE in "${SUBSAMPLES[@]}"; do
+            python $BASE_DIR/tthbb_spanet/scripts/dataset/coffea_to_parquet.py --cfg $BASE_DIR/parameters/features_run3_22_23.yaml -i $RUN_DIR/output_coffea_non_semilep/output_${SAMPLE_TTBAR}_${YEAR}.coffea -o $EOS_DIR/parquet_overall/${SAMPLE_TTBAR}_${SUBSAMPLE}_${YEAR}.parquet --dataset ${SAMPLE_TTBAR}_${YEAR} --ntuples $EOS_DIR/non_semilep_ttHbb/${SAMPLE_TTBAR}_${YEAR}/${SUBSAMPLE}/baseline --cat ${CAT}
+        done
+    done
+done
+
+# separate 2024 because it has different variables (btagging algorithm)
+for YEAR in 2024
+do
     # ttHbb sample divided in semileptonic (containing genmatching) and non_semilep
-    python $BASE_DIR/tthbb_spanet/scripts/dataset/coffea_to_parquet.py --cfg $BASE_DIR/parameters/features_run3.yaml -i $RUN_DIR/output_coffea_non_semilep/output_TTH_Hto2B_${YEAR}.coffea -o $EOS_DIR/parquet_overall_2/TTH_Hto2B_nonsemilep_${YEAR}.parquet --dataset TTH_Hto2B_${YEAR} --ntuples $EOS_DIR/TTH_Hto2B_${YEAR}/non_semilep/baseline
-    python $BASE_DIR/tthbb_spanet/scripts/dataset/coffea_to_parquet.py --cfg $BASE_DIR/parameters/features_run3_genmatched.yaml -i $RUN_DIR/output_coffea_ttH_semilep/output_TTH_Hto2B_${YEAR}.coffea -o $EOS_DIR/parquet_overall_2/TTH_Hto2B_genmatching_${YEAR}.parquet --dataset TTH_Hto2B_${YEAR} --ntuples $EOS_DIR/ttHbb_genmatching_semilep/TTH_Hto2B_${YEAR}/baseline
+    python $BASE_DIR/tthbb_spanet/scripts/dataset/coffea_to_parquet.py --cfg $BASE_DIR/parameters/features_run3_2024.yaml -i $RUN_DIR/output_coffea_non_semilep/output_TTH_Hto2B_${YEAR}.coffea -o $EOS_DIR/parquet_overall/TTH_Hto2B_nonsemilep_${YEAR}.parquet --dataset TTH_Hto2B_${YEAR} --ntuples $EOS_DIR/non_semilep_ttHbb/TTH_Hto2B_${YEAR}/non_semilep/baseline --cat ${CAT}
+    python $BASE_DIR/tthbb_spanet/scripts/dataset/coffea_to_parquet.py --cfg $BASE_DIR/parameters/features_run3_genmatched_2024.yaml -i $RUN_DIR/output_coffea_semilep/output_TTH_Hto2B_${YEAR}.coffea -o $EOS_DIR/parquet_overall/TTH_Hto2B_genmatching_${YEAR}.parquet --dataset TTH_Hto2B_${YEAR} --ntuples $EOS_DIR/semilep_ttHbb_genmatched/TTH_Hto2B_${YEAR}/baseline --cat ${CAT}
+    for SAMPLE in "${MINORBK_2024[@]}"; do
+        python $BASE_DIR/tthbb_spanet/scripts/dataset/coffea_to_parquet.py --cfg $BASE_DIR/parameters/features_run3_2024.yaml -i $RUN_DIR/output_coffea_non_semilep/output_${SAMPLE}_${YEAR}.coffea -o $EOS_DIR/parquet_overall/${SAMPLE}_${YEAR}.parquet --dataset ${SAMPLE}_${YEAR} --ntuples $EOS_DIR/non_semilep_ttHbb/${SAMPLE}_${YEAR}/baseline --cat ${CAT}
+    done
+    # ttbar semilepton, dilepton, 4FS and tthnon2b are split in subsamples ttLF, ttB, ttC
+    for SAMPLE_TTBAR in "${TTBAR[@]}"; do
+        for SUBSAMPLE in "${SUBSAMPLES[@]}"; do
+            python $BASE_DIR/tthbb_spanet/scripts/dataset/coffea_to_parquet.py --cfg $BASE_DIR/parameters/features_run3_2024.yaml -i $RUN_DIR/output_coffea_non_semilep/output_${SAMPLE_TTBAR}_${YEAR}.coffea -o $EOS_DIR/parquet_overall/${SAMPLE_TTBAR}_${SUBSAMPLE}_${YEAR}.parquet --dataset ${SAMPLE_TTBAR}_${YEAR} --ntuples $EOS_DIR/non_semilep_ttHbb/${SAMPLE_TTBAR}_${YEAR}/${SUBSAMPLE}/baseline --cat ${CAT}
+        done
+    done
 done

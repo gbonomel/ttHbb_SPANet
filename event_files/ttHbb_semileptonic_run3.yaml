@@ -8,8 +8,8 @@ INPUTS:
             btag_L: none
             btag_M: none
             btag_T: none
-            btag_XT: none
-            btag_XXT: none
+            #btag_XT: none
+            #btag_XXT: none
 
     GLOBAL:
         Met:
