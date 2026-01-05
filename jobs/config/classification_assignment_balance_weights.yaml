@@ -1,5 +1,5 @@
 path: /afs/cern.ch/work/g/gbonomel/higgs/ttHbb_SPANet
 model: classification_balance_weights_semileptonic
-job_flavour: nextweek
+job_flavour: testmatch
 ngpu: 1
 ncpu: 6
