@@ -1,6 +1,6 @@
 input:
   Jet: [MASK, pt, eta, phi, btag, btag_L, btag_M, btag_T]
-  Lepton: [pt, eta, phi]
+  Lepton: [MASK, pt, eta, phi, mass]
   Met: [pt, eta, phi]
   Event: [ht]
 
@@ -52,13 +52,13 @@ mapping_encoding:
     ttB: 2
     ttC: 3
     ttLF: 4
-    TTLL_MLL-4to50: 6
-    TTLL_MLL-50: 6
-    TTNuNu: 6
-    TTLNu: 6
+    TTLL_MLL-4to50: 5
+    TTLL_MLL-50: 5
+    TTNuNu: 5
+    TTLNu: 5
     TTZ-ZtoQQ: 6 
-    TWminus: 5
-    TbarWplus: 5
+    TWminus: 6
+    TbarWplus: 6
     #ZZto2L2Nu: 6
     #WZto3LNu: 6
     #WZto2L2Q: 6

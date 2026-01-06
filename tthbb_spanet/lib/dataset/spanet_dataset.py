@@ -7,7 +7,6 @@ import awkward as ak
 import h5py
 
 from .base import Dataset
-import gc
 
 # Inherited from https://github.com/Alexanders101/SPANet/blob/master/spanet/dataset/types.py
 class SpecialKey(str, Enum):
@@ -23,9 +22,10 @@ class SpecialKey(str, Enum):
     Weights = "WEIGHTS"
 
 class SPANetDataset(Dataset):
-    def __init__(self, input_file, cfg, shuffle=True, reweigh=False, entrystop=None, has_data=False, fully_matched=False):
+    def __init__(self, input_file, cfg, final_state, shuffle=True, reweigh=False, entrystop=None, has_data=False, fully_matched=False):
         super().__init__(input_file, cfg, shuffle=shuffle, reweigh=reweigh, entrystop=entrystop, has_data=has_data)
         self.fully_matched = fully_matched
+        self.final_state = final_state
         if self.fully_matched:
             self.select_fully_matched()
 
@@ -39,23 +39,37 @@ class SPANetDataset(Dataset):
 
     def select_fully_matched(self):
         '''Select only fully matched events.'''
-        mask_fullymatched = ak.sum(self.dataset.df[self.collection["Jet"]].matched == True, axis=1) >= 6
+        mask_fullymatched = ak.sum(self.dataset.df[self.collection["Jet"]].matched == True, axis=1) >= 4
         df = self.dataset.df[mask_fullymatched]
         jets = df[self.collection["Jet"]]
 
-        # We require exactly 2 jets from the Higgs, 3 jets from the W or hadronic top, and 1 lepton from the leptonic top
+        # 2. Higgs Check (Always 2 b-jets)
         jets_higgs = jets[jets.prov == 1]
         mask_match = ak.num(jets_higgs) == 2
 
-        jets_w_thadr = jets[(jets.prov == 5) | (jets.prov == 2)]
-        mask_match = mask_match & (ak.num(jets_w_thadr) == 3)
+        if self.final_state == "semileptonic":
+            # Semileptonic: 2 Higgs + 2 Top(W->qq) + 1 Top(b) + 1 Top(b) = 6 jets usually
+            # Your logic: 3 jets from W/HadTop
+            jets_w_thadr = jets[(jets.prov == 5) | (jets.prov == 2)]
+            mask_match = mask_match & (ak.num(jets_w_thadr) == 3)
+            # 1 jet from LepTop
+            jets_tlep = jets[jets.prov == 3]
+            mask_match = mask_match & (ak.num(jets_tlep) == 1)
 
-        jets_tlep = jets[jets.prov == 3]
-        mask_match = mask_match & (ak.num(jets_tlep) == 1)
+        elif self.final_state == "dileptonic":
+            print("Dileptonic final state")
+            # Dileptonic: 2 Higgs + 1 Top(b) + 1 AntiTop(b) = 4 jets
+            
+            # Top 1 (b-jet, prov=2)
+            jets_t1 = jets[jets.prov == 2]
+            mask_match = mask_match & (ak.num(jets_t1) == 1)
+
+            # Top 2 (b-jet, prov=3)
+            jets_t2 = jets[jets.prov == 3]
+            mask_match = mask_match & (ak.num(jets_t2) == 1)
 
         df = df[mask_match]
-        print(f"Selected {len(df)} fully matched events")
-
+        print(f"Selected {len(df)} fully matched events ({self.final_state})")
         self.dataset.df = df
 
     def check_output(self, output_file):
@@ -78,6 +92,7 @@ class SPANetDataset(Dataset):
         for group in self.classification_targets:
             self.file.create_group(f"{SpecialKey.Classifications.value}/{group}")
 
+
     
 
     def create_classifications(self, df):
@@ -92,57 +107,161 @@ class SPANetDataset(Dataset):
                     self.file.create_dataset(f"{SpecialKey.Classifications.value}/{group}/{target}", np.shape(values), dtype='int64', data=values)
                 else:
                     raise NotImplementedError
+
     def create_targets(self, df):
         jets = df[self.collection["Jet"]]
+        
+        # Check if this is a signal sample with parton matching
+        #if "prov" not in jets.fields:
+        #    print(f"Warning: 'prov' field not found in jets. Skipping target creation for background sample.")
+        #    print(f"Available fields: {jets.fields}")
+        #    # For background samples, create dummy targets with all -1 (no matching)
+        #    n_events = len(jets)
+        #    
+        #    for target in self.targets:
+        #        if target == "h":
+        #            self.file.create_dataset(f"{SpecialKey.Targets.value}/h/b1", (n_events,), dtype='int64', data=np.full(n_events, -1))
+        #            self.file.create_dataset(f"{SpecialKey.Targets.value}/h/b2", (n_events,), dtype='int64', data=np.full(n_events, -1))
+        #        elif target == "t1":
+        #            self.file.create_dataset(f"{SpecialKey.Targets.value}/t1/q1", (n_events,), dtype='int64', data=np.full(n_events, -1))
+        #            self.file.create_dataset(f"{SpecialKey.Targets.value}/t1/q2", (n_events,), dtype='int64', data=np.full(n_events, -1))
+        #            self.file.create_dataset(f"{SpecialKey.Targets.value}/t1/b", (n_events,), dtype='int64', data=np.full(n_events, -1))
+        #        elif target == "t2":
+        #            self.file.create_dataset(f"{SpecialKey.Targets.value}/t2/b", (n_events,), dtype='int64', data=np.full(n_events, -1))
+        #        else:
+        #            raise NotImplementedError
+        #    return
+        
+        # Original code for signal samples with parton matching
         indices = ak.local_index(jets)
+        if self.final_state == "semileptonic":
+            for target in self.targets:
+            
+                if target == "h":
 
-        for target in self.targets:
-            if target == "h":
-                if "prov" not in jets.fields:
-                    mask = ak.zeros_like(jets.pt, dtype=bool)
+                    if "prov" not in jets.fields:
+                        mask = ak.zeros_like(jets.pt, dtype=bool)
+                    else:
+                        mask = jets.prov == 1 # H->b1b2
+                    # We select the local indices of jets matched with the Higgs
+                    # The indices are padded with None such that there are 2 entries per event
+                    # The None values are filled with -1 (a nan value).
+                    indices_prov = ak.fill_none(ak.pad_none(indices[mask], 2), -1)
+
+                    index_b1 = indices_prov[:,0]
+                    index_b2 = indices_prov[:,1]
+
+                    self.file.create_dataset(f"{SpecialKey.Targets.value}/h/b1", np.shape(index_b1), dtype='int64', data=index_b1)
+                    self.file.create_dataset(f"{SpecialKey.Targets.value}/h/b2", np.shape(index_b2), dtype='int64', data=index_b2)
+
+                elif target == "t1":
+                    if "prov" not in jets.fields:
+                        mask = ak.zeros_like(jets.pt, dtype=bool)
+                    else:
+                        mask = jets.prov == 5 # W->q1q2 from t1
+                    indices_prov = ak.fill_none(ak.pad_none(indices[mask], 2), -1)
+
+                    index_q1 = indices_prov[:,0]
+                    index_q2 = indices_prov[:,1]
+                    
+                    if "prov" not in jets.fields:
+                        mask = ak.zeros_like(jets.pt, dtype=bool)
+                    else:
+                        mask = jets.prov == 2 # t1->Wb
+                    index_b_hadr = ak.fill_none(ak.pad_none(indices[mask], 1), -1)[:,0]
+
+                    self.file.create_dataset(f"{SpecialKey.Targets.value}/t1/q1", np.shape(index_q1), dtype='int64', data=index_q1)
+                    self.file.create_dataset(f"{SpecialKey.Targets.value}/t1/q2", np.shape(index_q2), dtype='int64', data=index_q2)
+                    self.file.create_dataset(f"{SpecialKey.Targets.value}/t1/b", np.shape(index_b_hadr), dtype='int64', data=index_b_hadr)
+                
+                elif target == "t2":
+                    if "prov" not in jets.fields:
+                        mask = ak.zeros_like(jets.pt, dtype=bool)
+                    else:
+                        mask = jets.prov == 3 # t2->b
+                    index_b_lep = ak.fill_none(ak.pad_none(indices[mask], 1), -1)[:,0]
+
+                    self.file.create_dataset(f"{SpecialKey.Targets.value}/t2/b", np.shape(index_b_lep), dtype='int64', data=index_b_lep)
                 else:
-                    mask = jets.prov == 1 # H->b1b2
-                # We select the local indices of jets matched with the Higgs
-                # The indices are padded with None such that there are 2 entries per event
-                # The None values are filled with -1 (a nan value).
-                indices_prov = ak.fill_none(ak.pad_none(indices[mask], 2), -1)
+                    raise NotImplementedError
+        
+        elif self.final_state == "dileptonic":
 
-                index_b1 = indices_prov[:,0]
-                index_b2 = indices_prov[:,1]
+            leptons = df[self.collection["Lepton"]] 
+            lepton_indices = ak.local_index(leptons)
 
-                self.file.create_dataset(f"{SpecialKey.Targets.value}/h/b1", np.shape(index_b1), dtype='int64', data=index_b1)
-                self.file.create_dataset(f"{SpecialKey.Targets.value}/h/b2", np.shape(index_b2), dtype='int64', data=index_b2)
+            for target in self.targets:
+            
+                if target == "h":
+                    if "prov" not in jets.fields:
+                        mask = ak.zeros_like(jets.pt, dtype=bool)
+                    else:
+                        mask = jets.prov == 1 # H->b1b2
+                    # We select the local indices of jets matched with the Higgs
+                    # The indices are padded with None such that there are 2 entries per event
+                    # The None values are filled with -1 (a nan value).
+                    indices_prov = ak.fill_none(ak.pad_none(indices[mask], 2), -1)
 
-            elif target == "t1":
-                if "prov" not in jets.fields:
-                    mask = ak.zeros_like(jets.pt, dtype=bool)
+                    index_b1 = indices_prov[:,0]
+                    index_b2 = indices_prov[:,1]
+
+                    self.file.create_dataset(f"{SpecialKey.Targets.value}/h/b1", np.shape(index_b1), dtype='int64', data=index_b1)
+                    self.file.create_dataset(f"{SpecialKey.Targets.value}/h/b2", np.shape(index_b2), dtype='int64', data=index_b2)
+                
+                elif target == "t1":
+                    if "prov" not in jets.fields:
+                        mask = ak.zeros_like(jets.pt, dtype=bool)
+                    else:    
+                        mask = jets.prov == 2
+                    indices_prov = ak.fill_none(ak.pad_none(indices[mask], 2), -1)
+
+                    index_b1 = indices_prov[:,0]
+                    self.file.create_dataset(f"{SpecialKey.Targets.value}/t1/b", np.shape(index_b1), dtype='int64', data=index_b1)
+                    print(df.fields)
+                    if "Event" in df.fields and "TargetLepTop" in df["Event"].fields:
+                        lep_idx = df["Event"]["TargetLepTop"]
+                    
+                    
+                    elif "TargetLepTop" in df.fields:
+                        lep_idx =  df["TargetLepTop"] 
+                        #lep_idx = ak.fill_none(ak.pad_none(lep_idx, 1), -1)[:, 0]
+#
+                        #leptons = df[self.collection["Lepton"]]
+                        #n_leptons = ak.num(leptons)
+#
+                        #is_valid = (lep_idx >= 0) & (lep_idx < n_leptons)
+                        #lep_idx = ak.where(is_valid, lep_idx, -1)
+#
+                        #unique, counts = np.unique(ak.to_numpy(lep_idx), return_counts=True)
+#
+                        #for u, c in zip(unique, counts):
+                        #    print(u, c)
+                    else:
+                        lep_idx = np.full(len(jets), -1, dtype='int64')                        
+                    
+                    self.file.create_dataset(f"{SpecialKey.Targets.value}/t1/l", np.shape(lep_idx), dtype='int64', data=lep_idx)
+
+                elif target == 't2':
+                    if "prov" not in jets.fields:
+                        mask = ak.zeros_like(jets.pt, dtype=bool)
+                    else:
+                        mask = jets.prov == 3
+                    indices_prov = ak.fill_none(ak.pad_none(indices[mask], 2), -1)
+
+                    index_b2 = indices_prov[:,0]
+                    self.file.create_dataset(f"{SpecialKey.Targets.value}/t2/b", np.shape(index_b2), dtype='int64', data=index_b2)
+
+                    if "Event" in df.fields and "TargetLepAntiTop" in df["Event"].fields:
+                        lep_idx = df["Event"]["TargetLepAntiTop"]
+                    
+                    elif "TargetLepAntiTop" in df.fields:
+                        lep_idx = df["TargetLepAntiTop"] 
+                    else:
+                        lep_idx = np.full(len(jets), -1, dtype='int64')
+
+                    self.file.create_dataset(f"{SpecialKey.Targets.value}/t2/l", np.shape(lep_idx), dtype='int64', data=lep_idx)
                 else:
-                    mask = jets.prov == 5 # W->q1q2 from t1
-                indices_prov = ak.fill_none(ak.pad_none(indices[mask], 2), -1)
-
-                index_q1 = indices_prov[:,0]
-                index_q2 = indices_prov[:,1]
-
-                if "prov" not in jets.fields:
-                    mask = ak.zeros_like(jets.pt, dtype=bool)
-                else:
-                    mask = jets.prov == 2 # t1->Wb
-                index_b_hadr = ak.fill_none(ak.pad_none(indices[mask], 1), -1)[:,0]
-
-                self.file.create_dataset(f"{SpecialKey.Targets.value}/t1/q1", np.shape(index_q1), dtype='int64', data=index_q1)
-                self.file.create_dataset(f"{SpecialKey.Targets.value}/t1/q2", np.shape(index_q2), dtype='int64', data=index_q2)
-                self.file.create_dataset(f"{SpecialKey.Targets.value}/t1/b", np.shape(index_b_hadr), dtype='int64', data=index_b_hadr)
-
-            elif target == "t2":
-                if "prov" not in jets.fields:
-                    mask = ak.zeros_like(jets.pt, dtype=bool)
-                else:
-                    mask = jets.prov == 3 # t2->b
-                index_b_lep = ak.fill_none(ak.pad_none(indices[mask], 1), -1)[:,0]
-
-                self.file.create_dataset(f"{SpecialKey.Targets.value}/t2/b", np.shape(index_b_lep), dtype='int64', data=index_b_lep)
-            else:
-                raise NotImplementedError
+                    raise NotImplementedError
 
     def create_weights(self, df):
         '''Create the weights in the h5 file.'''
@@ -233,75 +352,68 @@ class SPANetDataset(Dataset):
         '''Print the h5 file tree.'''
         self.h5_tree(self.file)
 
-    def save(self, output_file):
-        '''Save the h5 file for both the training and testing datasets.'''
-        print(f"Total dataframe length: {len(self.df)}")
-        print(f"test_size config: {self.test_size}")
-        print(f"n_train: {self.n_train}")
-        print(f"Train length: {len(self.train)}")
-        print(f"Test length: {len(self.test)}")
-        print(f"Train shape: {self.train}")
-        print(f"Test shape: {self.test}")
-
-        for dataset_type in ["train", "test"]:
-            print(f"Processing dataset: {dataset_type} ({len(getattr(self, dataset_type))} events)")
-
-            df = getattr(self, dataset_type)
-            output_file_custom = output_file.replace(".h5", f"_{dataset_type}_{len(df)}.h5")
-            self.check_output(output_file_custom)
-
-            print("Creating output file: ", output_file_custom)
-            self.file = h5py.File(output_file_custom, "w")
-            self.create_groups()
-            if not self.has_data:
-                self.create_targets(df)
-            self.create_classifications(df)
-            self.create_inputs(df)
-            self.create_weights(df)
-            print(self.file)
-            self.print()
-            self.file.close()
-    
-    #def save(self, output_file, events_per_file=2000000):
-    #    '''Save the h5 files for both training and testing datasets, splitting into smaller files.
-    #    
-    #    Args:
-    #        output_file: Base output file path
-    #        events_per_file: Maximum number of events per file (default: 2M)
-    #    '''
+    #def save(self, output_file):
+    #    '''Save the h5 file for both the training and testing datasets.'''
     #    for dataset_type in ["train", "test"]:
+    #        print(f"Processing dataset: {dataset_type} ({len(getattr(self, dataset_type))} events)")
+#
     #        df = getattr(self, dataset_type)
-    #        print(f"\nProcessing dataset: {dataset_type} ({len(df)} events)")
-    #        
-    #        if len(df) == 0:
-    #            print(f"Skipping {dataset_type} - empty dataset")
-    #            continue
-    #        
-    #        # Calculate number of files needed
-    #        n_files = (len(df) + events_per_file - 1) // events_per_file
-    #        print(f"Will create {n_files} files with up to {events_per_file} events each")
-    #        
-    #        # Split into multiple files
-    #        for file_idx in range(n_files):
-    #            start_idx = file_idx * events_per_file
-    #            end_idx = min((file_idx + 1) * events_per_file, len(df))
-    #            df_chunk = df[start_idx:end_idx]
-    #            
-    #            # Create filename with chunk info
-    #            output_file_custom = output_file.replace(".h5", f"_{dataset_type}_part{file_idx}_{len(df_chunk)}.h5")
-    #            self.check_output(output_file_custom)
-    #            
-    #            print(f"  File {file_idx+1}/{n_files}: Creating {output_file_custom} ({len(df_chunk)} events)")
-    #            
-    #            self.file = h5py.File(output_file_custom, "w")
-    #            self.create_groups()
-    #            if not self.has_data:
-    #                self.create_targets(df_chunk)
-    #            self.create_classifications(df_chunk)
-    #            self.create_inputs(df_chunk)
-    #            self.create_weights(df_chunk)
-    #            self.file.close()
-    #            
-    #            print(f"  ✓ Completed {output_file_custom}")
-    #        
-    #        print(f"Finished {dataset_type}: created {n_files} files")
+    #        output_file_custom = output_file.replace(".h5", f"_{dataset_type}_{len(df)}.h5")
+    #        self.check_output(output_file_custom)
+#
+    #        print("Creating output file: ", output_file_custom)
+    #        self.file = h5py.File(output_file_custom, "w")
+    #        self.create_groups()
+    #        if not self.has_data:
+    #            self.create_targets(df)
+    #        self.create_classifications(df)
+    #        self.create_inputs(df)
+    #        self.create_weights(df)
+    #        print(self.file)
+    #        self.print()
+    #        self.file.close()
+
+    def save(self, output_file, events_per_file=1000000):
+        '''Save the h5 files for both training and testing datasets, splitting into smaller files.
+        
+        Args:
+            output_file: Base output file path
+            events_per_file: Maximum number of events per file (default: 2M)
+        '''
+        for dataset_type in ["train", "test"]:
+            df = getattr(self, dataset_type)
+            print(f"\nProcessing dataset: {dataset_type} ({len(df)} events)")
+            
+            if len(df) == 0:
+                print(f"Skipping {dataset_type} - empty dataset")
+                continue
+            
+            # Calculate number of files needed
+            n_files = (len(df) + events_per_file - 1) // events_per_file
+            print(f"Will create {n_files} files with up to {events_per_file} events each")
+            
+            # Split into multiple files
+            for file_idx in range(n_files):
+                start_idx = file_idx * events_per_file
+                end_idx = min((file_idx + 1) * events_per_file, len(df))
+                df_chunk = df[start_idx:end_idx]
+                
+                # Create filename with chunk info
+                output_file_custom = output_file.replace(".h5", f"_{dataset_type}_part{file_idx}_{len(df_chunk)}.h5")
+                self.check_output(output_file_custom)
+                
+                print(f"  File {file_idx+1}/{n_files}: Creating {output_file_custom} ({len(df_chunk)} events)")
+                
+                self.file = h5py.File(output_file_custom, "w")
+                self.create_groups()
+                if not self.has_data:
+                    self.create_targets(df_chunk)
+                    print("Targets created")
+                self.create_classifications(df_chunk)
+                self.create_inputs(df_chunk)
+                self.create_weights(df_chunk)
+                self.file.close()
+                
+                print(f"  ✓ Completed {output_file_custom}")
+            
+            print(f"Finished {dataset_type}: created {n_files} files")

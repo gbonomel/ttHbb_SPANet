@@ -2,4 +2,4 @@ path: /afs/cern.ch/work/s/sspallac/private/project/ttHbb_SPANet/
 model: classification_balance_weights
 job_flavour: nextweek
 ngpu: 1
-ncpu: 6
+ncpu: 4
