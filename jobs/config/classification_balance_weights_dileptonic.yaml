@@ -1,0 +1,6 @@
+path: /afs/cern.ch/work/s/sspallac/private/project/ttHbb_SPANet
+model: classification_balance_weights_dileptonic
+job_flavour: nextweek
+ngpu: 1
+ncpu: 9
+gpu_memory: 24000

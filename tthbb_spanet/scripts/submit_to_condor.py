@@ -47,7 +47,7 @@ sub = htcondor.Submit()
 if interactive:
     sub['InteractiveJob'] = True
 
-if model in ["jet_assignment", "classification", "classification_balance_weights", "test_validation_loss", "test_mdmm_loss"]:
+if model in ["jet_assignment", "classification", "classification_balance_weights", "classification_balance_weights_dileptonic", "test_validation_loss", "test_mdmm_loss"]:
     sub['Executable'] = f"{basedir}/jobs/{model}.sh"
     sub['arguments'] = f"{args.options_file} {args.log_dir}"
     sub['Output'] = f"{basedir}/jobs/output/{model}-$(ClusterId).$(ProcId).out"
@@ -55,6 +55,8 @@ if model in ["jet_assignment", "classification", "classification_balance_weights
     sub['Log'] = f"{basedir}/jobs/log/{model}-$(ClusterId).log"
     sub['MY.SendCredential'] = True
     sub['MY.SingularityImage'] = '"/cvmfs/unpacked.cern.ch/registry.hub.docker.com/cmsml/cmsml:latest"'
+    sub['MY.SingularityBind'] = '"/afs,/eos,/cvmfs"'
+    sub['environment'] = '"CUDA_LAUNCH_BLOCKING=1 TF_CPP_MIN_LOG_LEVEL=3 TORCH_USE_CUDA_DSA=1 PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True SINGULARITYENV_CUDA_LAUNCH_BLOCKING=1 SINGULARITYENV_TF_CPP_MIN_LOG_LEVEL=3 SINGULARITYENV_TORCH_USE_CUDA_DSA=1"'
     sub['+JobFlavour'] = f'"{job_flavour}"'
 else:
     raise ValueError(f"Model {model} not implemented")
@@ -68,7 +70,7 @@ sub['request_cpus'] = f"{args.ncpu}"
 sub['request_gpus'] = f"{args.ngpu}"
 
 if args.good_gpus:
-    sub['requirements'] = 'regexp("A100", TARGET.GPUs_DeviceName) || regexp("V100", TARGET.GPUs_DeviceName) || regexp("H100", TARGET.GPUs_DeviceName)'
+    sub['requirements'] = '(TARGET.CUDACapability >= 8.0) && (regexp("A100", TARGET.GPUs_DeviceName) || regexp("V100", TARGET.GPUs_DeviceName) || regexp("H100", TARGET.GPUs_DeviceName)) && (Machine != "b9g57n6415.cern.ch") && (Machine != "b9pgpun001.cern.ch")'
 
 print("Submission parameters:")
 print(sub, end="\n\n")

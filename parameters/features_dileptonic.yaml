@@ -5,7 +5,7 @@ features:
       pt: pt
       eta: eta
       phi: phi
-      btag: btagUParTAK4B 
+      btag: btagUParTAK4B #UPar for 2024
       hadronFlavour: hadronFlavour
       btag_L: btag_L
       btag_M: btag_M
@@ -29,6 +29,9 @@ features:
   by_sample:
     
     TTH_Hto2B_v1:
+
+      TargetLepTop: {}  
+      TargetLepAntiTop: {}
       # Maps 'Parton' in SPANet to 'PartonInitial' in your file
       Parton:
         pt: pt
@@ -86,12 +89,39 @@ features:
         xpdf1: xpdf1
         xpdf2: xpdf2
         
-      LeptonParton:
+      TopLepton:
         pt: pt
         eta: eta
         phi: phi
         mass: mass
         pdgId: pdgId
+        #prov: matched_reco_idx #this is not a provenance, it is index pointing to position in LeptonGood that has been matched to a gen lepton
+
+      AntiTopLepton:
+        pt: pt
+        eta: eta
+        phi: phi
+        mass: mass
+        pdgId: pdgId
+        #prov: matched_reco_idx
+
+      TopLeptonMatched:
+        pt: pt
+        eta: eta
+        phi: phi
+       # mass: mass
+        #pdgId: pdgId
+        prov: provenance
+        dRMatchedLepton: dRMatchedLepton
+
+      AntiTopLeptonMatched:
+        pt: pt
+        eta: eta
+        phi: phi
+        #mass: mass
+        #pdgId: pdgId
+        prov: provenance
+        dRMatchedLepton: dRMatchedLepton
         
       HiggsParton:
         pt: pt
@@ -124,6 +154,10 @@ features:
     # --- Truth information for TTH_Hto2B_v2 ---
     # This is identical to TTH_Hto2B
     TTH_Hto2B_v2:
+
+      TargetLepTop: {}  # Just list the collection name with empty dict
+      TargetLepAntiTop: {}
+
       Parton:
         pt: pt
         eta: eta
@@ -180,12 +214,39 @@ features:
         xpdf1: xpdf1
         xpdf2: xpdf2
         
-      LeptonParton:
+      TopLepton:
         pt: pt
         eta: eta
         phi: phi
         mass: mass
         pdgId: pdgId
+        #prov: matched_reco_idx # this is not provenance
+
+      AntiTopLepton:
+        pt: pt
+        eta: eta
+        phi: phi
+        mass: mass
+        pdgId: pdgId
+        #prov: matched_reco_idx
+
+      TopLeptonMatched:
+        pt: pt
+        eta: eta
+        phi: phi
+        #mass: mass
+        #pdgId: pdgId
+        prov: provenance
+        dRMatchedLepton: dRMatchedLepton
+
+      AntiTopLeptonMatched:
+        pt: pt
+        eta: eta
+        phi: phi
+        #mass: mass
+        #pdgId: pdgId
+        prov: provenance
+        dRMatchedLepton: dRMatchedLepton
         
       HiggsParton:
         pt: pt
@@ -237,8 +298,12 @@ awkward_collections:
   - PartonLastCopyMatched
   - JetGood
   - JetGoodMatched
-  - LeptonParton
+  - TopLepton
+  - AntiTopLepton
+  - TopLeptonMatched
+  - AntiTopLeptonMatched
   - ISR
+  - LeptonGood
   # Note: LeptonGood, MET, HiggsParton, etc. are NOT collections
 
 # Maps "truth" collections to their "matched" subsets
@@ -246,3 +311,5 @@ matched_collections:
   Parton: PartonMatched
   PartonLastCopy: PartonLastCopyMatched
   JetGood: JetGoodMatched
+  TopLepton: TopLeptonMatched    
+  AntiTopLepton: AntiTopLeptonMatched

@@ -12,3 +12,5 @@ jobs/log
 jobs/output
 tthbb_spanet_env
 tthbb_spanet.egg-info
+tthbb_spanet/scripts/submit_to_condor.py
+scripts/submit_to_condor.py
