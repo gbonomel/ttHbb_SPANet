@@ -67,6 +67,9 @@ if args.checkpoint:
 sub['request_cpus'] = f"{args.ncpu}"
 sub['request_gpus'] = f"{args.ngpu}"
 
+# Fix for CUDA issues on some nodes
+sub['requirements'] = '!regexp("MIG", TARGET.Gpus_DeviceName)'
+
 if args.good_gpus:
     sub['requirements'] = 'regexp("A100", TARGET.GPUs_DeviceName) || regexp("V100", TARGET.GPUs_DeviceName) || regexp("H100", TARGET.GPUs_DeviceName)'
 
