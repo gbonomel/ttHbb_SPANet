@@ -29,9 +29,8 @@ SAMPLES_2024=(
     #"DYto2L-PtLL_400_600_2J_PtLL_400_600_2J" 
     #"DYto2L-PtLL_600_1J_PtLL_600_1J" 
     #"DYto2L-PtLL_600_2J_PtLL_600_2J" 
-    TTBAR=("TTTo2L2Nu" "TTToLNu2Q" "TTBBtoLNu2Q_4FS")
+    TTBAR=("TTTo2L2Nu_ttC" "TTToLNu2Q_ttC" "TTBBtoLNu2Q_4FS_ttB" "TTTo2L2Nu_ttLF" "TTToLNu2Q_ttLF") # 5FS for ttC and ttLF subsamples and 4FS for ttB
     #"TTHtoNon2B"
-SUBSAMPLES=("ttB" "ttC" "ttLF")
 
 
 for year in "2022_preEE" "2022_postEE" "2023_preBPix" "2023_postBPix";
@@ -47,10 +46,8 @@ do
         input_files+=("$file")
     done
     for sample_ttbar in ${TTBAR[@]}; do
-        for subsample in "${SUBSAMPLES[@]}"; do
-            file_subsample="$BASE_DIR/${sample_ttbar}_${subsample}_${year}.parquet"
-            input_files+=("$file_subsample")
-        done
+        file_subsample="$BASE_DIR/${sample_ttbar}_${year}.parquet"
+        input_files+=("$file_subsample")
     done
 
     output_file="/eos/cms/store/group/phys_higgs/ttHbb/ntuples/ttHbb_export/training_fixedwp_dec25/training_no_toppt_var/fixed_wp/h5_files/ttbb_tthbb_non_semilep_${year}.h5"
@@ -75,10 +72,8 @@ do
         input_files+=("$file")
     done
     for sample_ttbar in ${TTBAR[@]}; do
-        for subsample in "${SUBSAMPLES[@]}"; do
-            file_subsample="$BASE_DIR/${sample_ttbar}_${subsample}_${year}.parquet"
-            input_files+=("$file_subsample")
-        done
+        file_subsample="$BASE_DIR/${sample_ttbar}_${year}.parquet"
+        input_files+=("$file_subsample")
     done
 
     output_file="/eos/cms/store/group/phys_higgs/ttHbb/ntuples/ttHbb_export/training_fixedwp_dec25/training_no_toppt_var/fixed_wp/h5_files/ttbb_tthbb_non_semilep_${year}.h5"
