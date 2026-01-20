@@ -23,7 +23,7 @@ class ParquetDataset:
         self.dataset = dataset
         self.cat = cat
         self.input_ntuples = input_ntuples
-        self.tolerance = 50
+        self.tolerance = 5
 
         self.load_config()
         self.load_input()
@@ -64,33 +64,19 @@ class ParquetDataset:
         if self.schema == "coffea":
             return list(self.columns.keys())
         elif self.schema == "parquet":
-            print(f"\n=== DEBUG: Sample Matching ===")
-            print(f"Dataset: {self.dataset}")
-            print(f"Number of events in parquet: {self.nevents}")
-            print(f"Tolerance: {self.tolerance}")
-            print(f"\nAvailable samples in cutflow:")
-            
-            # Check if dataset exists in cutflow
-            if self.dataset not in self.cutflow:
-                print(f"ERROR: Dataset '{self.dataset}' not found in cutflow!")
-                print(f"Available datasets in cutflow: {list(self.cutflow.keys())}")
-                raise ValueError(f"Dataset '{self.dataset}' not found in cutflow.")
-            
-            # Print all samples and their event counts
-            for sample, nevt in self.cutflow[self.dataset].items():
-                diff = abs(nevt - self.nevents)
-                match = "✓" if (self.tolerance is None or np.isclose(nevt, self.nevents, atol=self.tolerance)) else "✗"
-                print(f"  {match} {sample}: {nevt} events (diff: {diff})")
-            
-            print(f"\n=== End Debug ===\n")
             samples = []
+            print(f"DEBUG: Cutflow keys for dataset '{self.dataset}':")
             for sample, nevt in self.cutflow[self.dataset].items():
-                if self.tolerance != None:
-                    if np.isclose(nevt, self.nevents, atol=self.tolerance):
+                nevt_val = nevt["nominal"] if isinstance(nevt, dict) else nevt
+                print(f"  - {sample}: {nevt_val} events")
+                if self.tolerance != None:                    
+                    if np.isclose(nevt_val, self.nevents, atol=self.tolerance):
                         samples.append(sample)
                 else:
                     if nevt == self.nevents:
                         samples.append(sample)
+            print(f'Samples: {samples}')
+            #breakpoint()
             if len(samples) == 0:
                 raise ValueError(f"No sample found with {self.nevents} events.")
             return samples
@@ -113,7 +99,7 @@ class ParquetDataset:
                 raise ValueError(f"Event category `{self.cat}` not found in the input file.")
             self.sum_genweights = self.df["sum_genweights"]
             self.cutflow = self.df["cutflow"][self.cat]
-
+            
         if self.input_ntuples:
             self.schema = "parquet"
             print("Reading input ntuples: ", self.input_ntuples)
@@ -210,15 +196,6 @@ class ParquetDataset:
 
             # Build the array_dict from the unflattened ntuples read from parquet
             for collection, variable in self.features_dict[sample].items():
-
-                if not variable or len(variable) == 0:
-
-                    if hasattr(self.events, collection):
-                        self.zipped_dict[sample][collection] = self.events[collection]
-                        print(f"Collection: {collection} (scalar)")
-                        print(f"  Added as scalar value")
-                    continue
-
                 for key_feature, key_coffea in variable.items():
                     if (collection == "JetGoodMatched") & (key_coffea == "provenance"):
                         try:
@@ -240,17 +217,16 @@ class ParquetDataset:
             # If the collection is not a Momentum4D array, it is zipped as it is.
             # Here we assume that the ntuples are unflattened, therefore we don't need to unflatten them before zipping.
             for collection in self.array_dict[sample].keys():
-                if len(self.array_dict[sample][collection]) == 0:
-                    print(f"Skipping empty collection: {collection}")
-                    continue
                 ndim = self.get_collection_dim(self.array_dict[sample][collection])
                 if (collection not in self.awkward_collections) & (ndim > 1):
                     # We flatten the collections that should not be saved as awkward collections after zipping
                     self.zipped_dict[sample][collection] = ak.flatten(ak.zip(self.array_dict[sample][collection], with_name='Momentum4D'))
                 else:
                     self.zipped_dict[sample][collection] = ak.zip(self.array_dict[sample][collection], with_name='Momentum4D')
+                arr = self.zipped_dict[sample][collection]
                 print(f"Collection: {collection}")
-                print("Fields: ", self.zipped_dict[sample][collection].fields)
+                print("Fields:", arr.fields)
+                print(f"Size: {len(arr)}")
 
             for collection in self.zipped_dict[sample].keys():
                 # Pad the matched collections with None if there is no matching
@@ -261,35 +237,13 @@ class ParquetDataset:
                         print(f"WARNING: Matched collection '{matched_collection}' not found for sample '{sample}'. Skipping.")
                         continue
 
-                    if hasattr(self.zipped_dict[sample][matched_collection], 'pt'):
-                        masked_arrays = ak.mask(
-                            self.zipped_dict[sample][matched_collection], 
-                            self.zipped_dict[sample][matched_collection].pt == -999, 
-                            None
-                        )
-                    else:
-                        masked_arrays = self.zipped_dict[sample][matched_collection]
-
+                    masked_arrays = ak.mask(self.zipped_dict[sample][matched_collection], self.zipped_dict[sample][matched_collection].pt==-999, None)
                     self.zipped_dict[sample][matched_collection] = masked_arrays
-
                     # Add the matched flag and the provenance to the matched jets
                     if collection == "JetGood":
                         is_matched = ~ak.is_none(masked_arrays, axis=1)
                         self.zipped_dict[sample][collection] = ak.with_field(self.zipped_dict[sample][collection], is_matched, "matched")
                         self.zipped_dict[sample][collection] = ak.with_field(self.zipped_dict[sample][collection], ak.fill_none(masked_arrays.prov, -1), "prov")
-
-
-                    elif collection in ["TopLepton", "AntiTopLepton"]:
-                        # Add matched flag for leptons
-                        is_matched = ~ak.is_none(masked_arrays, axis=1)
-                        self.zipped_dict[sample][collection] = ak.with_field(
-                            self.zipped_dict[sample][collection], is_matched, "matched"
-                        )
-                        self.zipped_dict[sample][collection] = ak.with_field(
-                            self.zipped_dict[sample][collection],
-                            ak.fill_none(masked_arrays.prov, -1),
-                            "prov"
-                        )
 
             # Add the remaining keys to the zipped dictionary
             if self.is_mc(sample):
@@ -347,64 +301,12 @@ class ParquetDataset:
             if self.is_mc(sample):
                 self.zipped_dict[sample]["event"] = ak.zip({"weight" : cs["weight"].value})
 
-    #def save_parquet(self):
-    #    '''Create the parquet files with the zipped dictionary.'''
-#
-    #    for sample in self.samples:
-    #        print("Zipping the collections into a single dictionary...")
-    #        
-    #        # Debug: Check array lengths
-    #        print(f"\n=== Debugging array lengths for sample: {sample} ===")
-    #        for key, value in self.zipped_dict[sample].items():
-    #            print(f"{key}: length={len(value)}, type={type(value)}")
-    #            if hasattr(value, 'fields'):
-    #                print(f"  fields: {value.fields}")
-    #        
-    #        
-    #        max_length = max(len(value) for value in self.zipped_dict[sample].values())
-    #        
-    #        for key, value in self.zipped_dict[sample].items():
-    #            current_length = len(value)
-    #            if current_length < max_length:
-    #                print(f"WARNING: Padding {key} from {current_length} to {max_length} events")
-    #                padding_size = max_length - current_length
-    #                
-    #                # Create padding that matches the structure of the existing array
-    #                if key == "ISR":
-    #                    # ISR is a jagged array, so pad with empty lists
-    #                    # Get the fields from the existing ISR structure
-    #                    fields = value.fields
-    #                    # Create empty arrays for each field
-    #                    padding_dict = {}
-    #                    for field in fields:
-    #                        # Create empty jagged arrays (lists with no elements)
-    #                        padding_dict[field] = ak.Array([[]] * padding_size)
-    #                    
-    #                    padding = ak.zip(padding_dict, with_name='Momentum4D')
-    #                    self.zipped_dict[sample][key] = ak.concatenate([value, padding])
-    #                elif key == "event":
-    #                    # For event (which has 'weight'), pad with zeros or appropriate default
-    #                    padding = ak.zip({"weight": ak.Array([0.0] * padding_size)})
-    #                    self.zipped_dict[sample][key] = ak.concatenate([value, padding])
-    #                else:
-    #                    # This shouldn't happen for other collections, but handle it anyway
-    #                    print(f"ERROR: Unexpected length mismatch for {key}")
-    #                    raise ValueError(f"Collection {key} has unexpected length mismatch")
-    #        
-    #        df_out = ak.zip(self.zipped_dict[sample], depth_limit=1)
-#
-    #        if len(self.samples) > 1:
-    #            output_file = self.output_file.replace(".parquet", f"_{sample}.parquet")
-    #        else:
-    #            output_file = self.output_file
-    #        print(f"Saving the output dataset to file: {output_file}")
-    #        ak.to_parquet(df_out, output_file)
-
 
     def save_parquet(self):
         '''Create the parquet files with the zipped dictionary.'''
 
         for sample in self.samples:
+            
             # The Momentum4D arrays are zipped together to form the final dictionary of arrays.
             print("Zipping the collections into a single dictionary...")
             df_out = ak.zip(self.zipped_dict[sample], depth_limit=1)
