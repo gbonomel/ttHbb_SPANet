@@ -1,6 +1,6 @@
 #!/bin/bash
 
-FOLDER="/eos/cms/store/group/phys_higgs/ttHbb/ntuples/ttHbb_export/training_fixedwp_dec25/training_no_toppt_var/fixed_wp/h5_files"
+FOLDER="/eos/cms/store/group/phys_higgs/ttHbb/ntuples/ttHbb_export/training_fixedwp_dec25/training_no_toppt_var/fixed_wp/dctr_lepton_veto/dctr_variables/h5_files"
 
 # =================================================================================
 #   If you want to specify only a subset of files 
@@ -48,8 +48,8 @@ FOLDER="/eos/cms/store/group/phys_higgs/ttHbb/ntuples/ttHbb_export/training_fixe
 INPUTS_TRAIN=("${FOLDER}"/*train*.h5)
 INPUTS_TEST=("${FOLDER}"/*test*.h5)
 
-OUTPUT_TRAIN="${FOLDER}/ttbb_tthbb_non_semilep_tthbb_semilep_genmatched_22_23only_train.h5"
-OUTPUT_TEST="${FOLDER}/ttbb_tthbb_non_semilep_tthbb_semilep_genmatched_22_23only_test.h5"
+OUTPUT_TRAIN="${FOLDER}/ttbb_tthbb_non_semilep_tthbb_semilep_genmatched_train.h5"
+OUTPUT_TEST="${FOLDER}/ttbb_tthbb_non_semilep_tthbb_semilep_genmatched_test.h5"
 
 python /afs/cern.ch/work/g/gbonomel/higgs/ttHbb_SPANet/tthbb_spanet/scripts/dataset/merge_h5_files.py \
   -i "${INPUTS_TRAIN[@]}" \
