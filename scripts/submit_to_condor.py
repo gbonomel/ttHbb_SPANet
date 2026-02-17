@@ -8,12 +8,23 @@ from omegaconf import OmegaConf
 parser = argparse.ArgumentParser()
 parser.add_argument('--cfg', type=str, required=True)
 parser.add_argument("-of", "--options_file", type=str, default=None,
-                    help="JSON file with option overloads.", required=True)
+                    help="JSON file with option overloads.")
 parser.add_argument("-l", "--log_dir", type=str, default=None,
-                    help="Output directory for the checkpoints and tensorboard logs. Default to current directory.", required=True)
+                    help="Output directory for the checkpoints and tensorboard logs. Default to current directory.")
 parser.add_argument("-cf", "--checkpoint", type=str, default=None,
                     help="Optional checkpoint to load the training state from. "
                          "Fully restores model weights and optimizer state.")
+# DNN optimization specific arguments
+parser.add_argument("-i", "--input", type=str, default=None,
+                    help="DCTR parquet input file (for dnn_optimization).")
+parser.add_argument("-m", "--model_file", type=str, default=None,
+                    help="SPANet model parquet file (for dnn_optimization).")
+parser.add_argument("-e", "--event", type=str, default=None,
+                    help="Event YAML file (for dnn_optimization).")
+parser.add_argument("-o", "--output", type=str, default=None,
+                    help="Output directory for plots and DCTR model (for dnn_optimization).")
+parser.add_argument("--nepochs", type=int, default=100,
+                    help="Number of epochs to train for (for dnn_optimization).")
 parser.add_argument('--dry', action="store_true")
 parser.add_argument('--interactive', action="store_true")
 parser.add_argument('--ngpu', type=int, default=1)
@@ -56,6 +67,19 @@ if model in ["jet_assignment", "classification", "classification_balance_weights
     sub['MY.SendCredential'] = True
     sub['MY.SingularityImage'] = '"/cvmfs/unpacked.cern.ch/registry.hub.docker.com/cmsml/cmsml:latest"'
     sub['+JobFlavour'] = f'"{job_flavour}"'
+elif model == "dnn_optimization":
+    # Validate required arguments for dnn_optimization
+    if not all([args.input, args.model_file, args.event, args.output]):
+        raise ValueError("dnn_optimization requires --input, --model_file, --event, and --output arguments")
+    
+    sub['Executable'] = f"{basedir}/jobs/{model}.sh"
+    sub['arguments'] = f"{args.input} {args.model_file} {args.event} {args.output} {args.nepochs}"
+    sub['Output'] = f"{args.output}/jobs/output/{model}-$(ClusterId).$(ProcId).out"
+    sub['Error']  = f"{args.output}/jobs/error/{model}-$(ClusterId).$(ProcId).err"
+    sub['Log']    = f"{args.output}/jobs/log/{model}-$(ClusterId).log"
+    sub['MY.SendCredential'] = True
+    sub['MY.SingularityImage'] = '"/cvmfs/unpacked.cern.ch/registry.hub.docker.com/cmsml/cmsml:latest"'
+    sub['+JobFlavour'] = f'"{job_flavour}"'
 else:
     raise ValueError(f"Model {model} not implemented")
 
@@ -71,7 +95,13 @@ sub['request_gpus'] = f"{args.ngpu}"
 sub['requirements'] = '!regexp("MIG", TARGET.Gpus_DeviceName)'
 
 if args.good_gpus:
-    sub['requirements'] = 'regexp("A100", TARGET.GPUs_DeviceName) || regexp("V100", TARGET.GPUs_DeviceName) || regexp("H100", TARGET.GPUs_DeviceName)'
+    sub['requirements'] = (
+    '(regexp("A100", TARGET.GPUs_DeviceName) || '
+    'regexp("V100", TARGET.GPUs_DeviceName) || '
+    'regexp("H100", TARGET.GPUs_DeviceName)) && '
+    '!regexp("MIG", TARGET.GPUs_DeviceName)'
+)
+
 
 print("Submission parameters:")
 print(sub, end="\n\n")

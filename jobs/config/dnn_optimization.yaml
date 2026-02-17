@@ -1,0 +1,5 @@
+path: /afs/cern.ch/work/g/gbonomel/higgs/ttHbb_SPANet
+model: dnn_optimization
+job_flavour: workday
+ngpu: 1
+ncpu: 3
