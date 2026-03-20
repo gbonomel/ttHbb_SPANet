@@ -4,24 +4,21 @@ INPUTS:
             pt: log_normalize
             eta: normalize
             phi: normalize
-            btag: none
             btag_L: none
             btag_M: none
             btag_T: none
-            #btag_XT: none
-            #btag_XXT: none
 
     GLOBAL:
         Met:
             pt: log_normalize
-            eta: normalize
             phi: normalize
         Lepton:
             pt: log_normalize
             eta: normalize
             phi: normalize
+            is_electron: none
         Event:
-            ht: normalize
+            ht: log_normalize
 EVENT:
     t1:
         - q1
