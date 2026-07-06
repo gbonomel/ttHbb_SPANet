@@ -1,0 +1,48 @@
+INPUTS:
+    SEQUENTIAL:
+        Jet:
+            pt: log_normalize
+            eta: normalize
+            phi: normalize
+            #btag: none
+            btag_L: none
+            btag_M: none
+            btag_T: none
+            #btag_XT: none
+            #btag_XXT: none
+        Lepton:  #since dileptonic so 2 leptons --> need sequential. In semi can put in global
+            pt: log_normalize
+            eta: normalize
+            phi: normalize
+            is_electron: none
+
+    GLOBAL:
+        Met:
+            pt: log_normalize
+            #eta: normalize
+            phi: normalize
+        Event:
+            ht: normalize
+EVENT:
+    t1:
+        - b
+        - l  #only one b in dileptonic. In semi need to add q1, q2
+    t2:
+        - b
+        - l
+    h:
+        - b1
+        - b2
+       
+PERMUTATIONS:
+    Event:
+        - [t1, t2] #since dileptonic. In semileptonic t1: - [q1, q2]
+    h:
+        - [b1, b2]
+
+REGRESSIONS:
+
+CLASSIFICATIONS:
+    EVENT:
+        - signal
+
