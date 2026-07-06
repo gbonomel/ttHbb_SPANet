@@ -16,7 +16,7 @@ INPUTS:
             pt: log_normalize
             eta: normalize
             phi: normalize
-            is_electron: none
+            pdgId: none
         Event:
             ht: log_normalize
 EVENT:

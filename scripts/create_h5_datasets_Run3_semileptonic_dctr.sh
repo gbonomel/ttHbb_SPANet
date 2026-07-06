@@ -1,6 +1,6 @@
 #!/bin/bash
 
-BASE_DIR=/eos/cms/store/group/phys_higgs/ttHbb/ntuples/ttHbb_export/training_fixedwp_dec25/training_no_toppt_var/fixed_wp/dctr_lepton_veto/dctr_variables/parquet_overall
+BASE_DIR=/eos/cms/store/group/phys_higgs/ttHbb/ntuples/ttHbb_export/training_multiplewp/promptMVA_only_e/parquet_overall
 
 final_state=semileptonic
 

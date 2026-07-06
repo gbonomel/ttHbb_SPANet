@@ -13,8 +13,6 @@ import h5py
 import yaml
 import argparse
 
-import seaborn as sns
-
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import roc_curve, auc
 import onnxruntime    # to inference ONNX models, we use the ONNX Runtime
@@ -107,7 +105,7 @@ def get_sr_mask(scores, cr_cuts):
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-i", "--input", help="DCTR parquet input file", required=True)
-parser.add_argument("-m", "--model", help="Spanet model file", required=True)
+#parser.add_argument("-m", "--model", help="Spanet model file", required=True)
 parser.add_argument("-e", "--event", help="Event YAML file", required=True)
 parser.add_argument("-o", "--output", help="Output directory for plots and DCTR model", required=True)
 parser.add_argument("--nepochs", default=100, type=int, help="Number of epochs to train for")
@@ -116,11 +114,11 @@ args = parser.parse_args()
 cr_cuts = {
     "tthbb_transformed_min": 0.5,
     "tthbb_transformed_max": 0.8,
-    "ttlf_max": 0.5
+    "ttlf_max": 0.2,
 }
 
 # choose the list of lambdas to test for the adv training
-lambdas = [0.1, 0.5, 1, 2, 5, 10]
+lambdas = [1,2]
 print("Lambdas to test for adversarial training: ", lambdas)
 
 # Set device
@@ -128,7 +126,6 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print(f"Using device: {device}")
 
 dctr_input = args.input
-spanet_model = args.model
 event_f = args.event
 save_folder = args.output
 #quantile_transformer_f = "/eos/home-g/gbonomel/tth/spanet/models/singlewp_dctr_leptonveto_medium/spanet_evaluation/tthbb_quantile_transformer.npz"
@@ -155,11 +152,11 @@ labels = {
     "ttcc": 3,
     "ttlf": 4,
     "ttv": 5,
-    "singletop": 6
+    "singletop": 6,
+    "tthcc": 7,
 }
 
-# load spanet output from parquet file, dctr input from parquet file, and event file from yaml
-spanet_out = ak.from_parquet(spanet_model)
+# load dctr input from parquet file, and event file from yaml
 df = ak.from_parquet(dctr_input)
 with open(event_f, "r") as f:
     event_file = yaml.safe_load(f)
@@ -172,8 +169,7 @@ weights = ak.to_numpy(df.event.weight)
 njet = ak.num(df.JetGood)
 for label in labels:
     true_labels[label] = ak.to_numpy(df[f"{label}"]).astype(bool)
-for key in spanet_out.fields:
-    pred_labels[key] = ak.to_numpy(ak.fill_none(spanet_out[key], 0.0))
+    pred_labels[label] = ak.to_numpy(df.spanet_output[f"{label}"])
 
 # ======================= Quantile transformation ===========================
 #
@@ -193,7 +189,7 @@ ax.hist(pred_labels_transformed["tthbb"][is_tthbb], weights=weights[is_tthbb], b
 ax.legend(loc='best');
 ax.set_xlabel("ttHbb score")
 ax.set_ylabel("Counts")
-plt.savefig(save_folder+"ttHbb_transformed.png", dpi=300)
+plt.savefig(os.path.join(save_folder, "ttHbb_transformed.png"), dpi=300)
 plt.close()
 print("Transformed tthbb score saved in", save_folder)
 
@@ -218,6 +214,10 @@ data_cr.append(ak.to_numpy(bjet_pt_3[mask_ttbb_CR]))
 data_cr.append(ak.to_numpy(bjet_eta_3[mask_ttbb_CR]))
 data_sr.append(ak.to_numpy(bjet_pt_3[mask_ttbb_SR]))
 data_sr.append(ak.to_numpy(bjet_eta_3[mask_ttbb_SR]))
+
+# use also njets as input to the DCTR but we do not reweigh based on njets then
+#data_cr.append(ak.to_numpy(njet[mask_ttbb_CR]))
+#data_sr.append(ak.to_numpy(njet[mask_ttbb_SR]))
 
 # note that with the classifier we want to distinguish data vs ttbb in the ttbb CR
 # with the adversarial network we want to distinguish ttbb in the CR vs ttbb in the CR
@@ -254,12 +254,12 @@ for idx, nj in enumerate(edges[:-1]):
         rew_N_jets_ttbb_SR[ak.to_numpy(njet[mask_ttbb_SR & is_ttbb]) == nj] = njet_reweight_factors[idx]
 
 training_weight = weights[mask_ttbb_CR].copy()
-training_weight[target_class == 0] = training_weight[target_class == 0] * rew_N_jets_ttbb_CR
+training_weight[target_class == 0] = training_weight[target_class == 0] * rew_N_jets_ttbb_CR # remove njet reweighting
 
 training_weight_ttbb_CR = training_weight[target_class == 0].copy()
 
 training_weight_ttbb_SR = weights[mask_ttbb_SR & is_ttbb].copy()
-training_weight_ttbb_SR =  training_weight_ttbb_SR * rew_N_jets_ttbb_SR
+training_weight_ttbb_SR =  training_weight_ttbb_SR * rew_N_jets_ttbb_SR # remove njet reweighting
 training_weight_ttbb_adv = np.concatenate([training_weight_ttbb_SR, training_weight_ttbb_CR])
 
 print("Plotting before and after njet reweighting")
@@ -270,7 +270,7 @@ ax.hist(ak.to_numpy(njet[mask_ttbb_CR])[target_class == 0], weights=weights[mask
 ax.legend(loc='best');
 ax.set_xlabel("nJet")
 ax.set_ylabel("Counts")
-plt.savefig(save_folder+"nJet_reweighting_CR.png", dpi=300)
+plt.savefig(os.path.join(save_folder, "nJet_reweighting_CR.png"), dpi=300)
 plt.close()
 print("ttbb njet reweighting saved in", save_folder)
 
@@ -600,7 +600,7 @@ for l_adv in lambdas:
     plt.legend()
     plt.ylabel("Events")
     plt.xlabel("classifier output")
-    plt.savefig(save_folder+f"classifier_output_lambda{l_adv}.png", dpi=300)
+    plt.savefig(os.path.join(save_folder, f"classifier_output_lambda{l_adv}.png"), dpi=300)
     plt.close()
     print("DCTR classifier output saved in ", save_folder)
     dctr_w  = y_pred_adv / (1-y_pred_adv)
@@ -616,7 +616,7 @@ for l_adv in lambdas:
     plt.xlabel("DCTR weight")
     plt.ylabel("Events")
     plt.legend()
-    plt.savefig(save_folder+"dctr_weight_bynjet.png", dpi=300)
+    plt.savefig(os.path.join(save_folder, f"dctr_weight_bynjet_lambda{l_adv}.png"), dpi=300)
     plt.close()
     print("DCTR weight saved in ", save_folder)
 
@@ -677,6 +677,11 @@ for l_adv in lambdas:
                     weights=weights[mask_ttbb_nj] * rew_N_jets_full[mask_ttbb_nj] * dctr_weight_full[mask_ttbb_nj], 
                     bins=20, range=(vmin, vmax), 
                     histtype="step", linewidth=2, color=CMAP_10[2], label="ttbb (njet + dctr reweighted)")
+            # only dctr reweighting
+            #ax.hist(var[mask_ttbb_nj], 
+            #        weights=weights[mask_ttbb_nj] * dctr_weight_full[mask_ttbb_nj], 
+            #        bins=20, range=(vmin, vmax), 
+            #        histtype="step", linewidth=2, color=CMAP_10[2], label="ttbb (dctr reweighted)")
             ax.set_xlabel(field)
             ax.set_ylabel("Events")
             ax.legend(fontsize=12)
@@ -693,7 +698,7 @@ for l_adv in lambdas:
         print("dctr variables for ttbb CR saved in", save_folder)
     
     # plot the DCTR input variables for different njet bins, comparing ttbb in CR vs SR with njet reweighting    
-    print("Plotting ttbb CR vs SR with njet reweighting")
+    print("Plotting ttbb CR vs SR") # with njet reweighting")
     for nj in range(4, 8):
         if nj == 7:
             mask_nj = ak.to_numpy(njet >= nj)
@@ -731,6 +736,7 @@ for l_adv in lambdas:
                 norm_njet = 1.0
                 norm_full = 1.0
 
+            # with n-jet reweighting
             # 1. Plot ttbb SR
             ax.hist(var[mask_ttbb_sr_nj], 
                     weights=weights[mask_ttbb_sr_nj] * rew_N_jets_full[mask_ttbb_sr_nj], 
@@ -741,6 +747,18 @@ for l_adv in lambdas:
                     weights=weights[mask_ttbb_cr_nj] * rew_N_jets_full[mask_ttbb_cr_nj] * dctr_weight_full[mask_ttbb_cr_nj] * norm_full, #* dctr_weight_full[mask_ttbb_cr_nj] * norm_full, 
                     bins=20, range=(vmin, vmax), 
                     histtype="step", linewidth=2, color=CMAP_10[1], label="ttbb CR (rew njet)")
+
+            # without n-jet reweighting
+            # 1. Plot ttbb SR
+            #ax.hist(var[mask_ttbb_sr_nj], 
+            #        weights=weights[mask_ttbb_sr_nj], 
+            #        bins=20, range=(vmin, vmax), 
+            #        histtype="step", linewidth=2, color=CMAP_10[0], label="ttbb SR (rew njet)")
+            ## 2. Plot ttbb CR
+            #ax.hist(var[mask_ttbb_cr_nj], 
+            #        weights=weights[mask_ttbb_cr_nj] * dctr_weight_full[mask_ttbb_cr_nj] * norm_full, #* dctr_weight_full[mask_ttbb_cr_nj] * norm_full, 
+            #        bins=20, range=(vmin, vmax), 
+            #        histtype="step", linewidth=2, color=CMAP_10[1], label="ttbb CR (rew njet)")
             
             ax.set_xlabel(field)
             ax.set_ylabel("Events")
@@ -752,6 +770,7 @@ for l_adv in lambdas:
         
         fig.suptitle(f"nJet = {nj}", fontsize=16)
         fig_name = os.path.join(save_folder, f"dctr_input_variables_CR_SR_lambda{l_adv}_{nj}Jets_reweighted.png")
+        #fig_name = os.path.join(save_folder, f"dctr_input_variables_CR_SR_lambda{l_adv}_{nj}Jets.png")
         plt.savefig(fig_name, dpi=300)
         plt.tight_layout()
         plt.close()

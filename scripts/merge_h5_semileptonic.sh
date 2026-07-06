@@ -1,6 +1,6 @@
 #!/bin/bash
 
-FOLDER="/eos/cms/store/group/phys_higgs/ttHbb/ntuples/ttHbb_export/training_multiplewp/promptMVA_e_mu/h5_files"
+FOLDER="/eos/cms/store/group/phys_higgs/ttHbb/ntuples/ttHbb_export/training_multiplewp/nbjet_eff_btagsf_onlyttbar/h5_files"
 
 # =================================================================================
 #   If you want to specify only a subset of files 

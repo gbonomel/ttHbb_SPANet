@@ -13,20 +13,22 @@ particles: [t1, t2, h]
 
 mapping_sample:
   TTH_Hto2B: tthbb
+  #TTHtoNon2B: tthcc
   ttB: ttbb
   ttC: ttcc
   ttLF: ttlf
-  TTLL_ML_to50: ttv
-  TTLL_ML_50: ttv
-  TTNuNu: ttv
-  TTLNu: ttv
-  TTZ: ttv
-  TWminus: singlet
-  TWplus: singlet
-  TBbarQ_tchannel: singlet
-  TbarBQ_tchannel: singlet
-  TBbarLNuB_schannel: singlet
-  TbarBLNuB_schannel: singlet
+  #TTLL_ML_to50: ttv
+  #TTLL_ML_50: ttv
+  #TTNuNu: ttv
+  #TTLNu: ttv
+  #TTZ: ttv
+  #TTW: ttv
+  #TWminus: singlet
+  #TWplus: singlet
+  #TBbarQ_tchannel: singlet
+  #TbarBQ_tchannel: singlet
+  #TBbarLNuB_schannel: singlet
+  #TbarBLNuB_schannel: singlet
   #ZZ: vv
   #WZ: vv
   #WW: vv
@@ -44,20 +46,22 @@ mapping_sample:
 mapping_encoding:
   signal:
     TTH_Hto2B: 1
+    #TTHtoNon2B: 7
     ttB: 2
     ttC: 3
     ttLF: 4
-    TTLL_ML_to50: 5
-    TTLL_ML_50: 5
-    TTNuNu: 5
-    TTLNu: 5
-    TTZ: 5
-    TWminus: 6
-    TWplus: 6
-    TBbarQ_tchannel: 6
-    TbarBQ_tchannel: 6
-    TBbarLNuB_schannel: 6
-    TbarBLNuB_schannel: 6
+    #TTLL_ML_to50: 5
+    #TTLL_ML_50: 5
+    #TTNuNu: 5
+    #TTLNu: 5
+    #TTZ: 5
+    #TTW: 5
+    #TWminus: 6
+    #TWplus: 6
+    #TBbarQ_tchannel: 6
+    #TbarBQ_tchannel: 6
+    #TBbarLNuB_schannel: 6
+    #TbarBLNuB_schannel: 6
     #WJetsToLNu: 7
     #DYJetsToLL_10_50: 7
     #DYto2L-PtLL_100_200_1J_PtLL_100_200_1J: 7 
