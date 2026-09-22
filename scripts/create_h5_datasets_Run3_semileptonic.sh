@@ -1,18 +1,19 @@
 #!/bin/bash
 BASE_DIR=/afs/cern.ch/work/g/gbonomel/higgs/ttHbb_SPANet
-EOS_DIR=/eos/cms/store/group/phys_higgs/ttHbb/ntuples/ttHbb_export/training_multiplewp/promptMVA_e_mu
+EOS_DIR=/eos/cms/store/group/phys_higgs/ttHbb/ntuples/ttHbb_export/training_multiplewp/nbjet_eff_btagsf_onlyttbar
 
 SAMPLES_2022_23=(
         "TTH_Hto2B_nonsemilep"
-        "TWminus" 
-        "TWplus" 
-        "TBbarQ_tchannel"
-        "TbarBQ_tchannel"
-        "TBbarLNuB_schannel"
-        "TbarBLNuB_schannel"
-        "TTNuNu" 
-        "TTLNu" 
-        "TTZ"
+        #"TWminus" 
+        #"TWplus" 
+        #"TBbarQ_tchannel"
+        #"TbarBQ_tchannel"
+        #"TBbarLNuB_schannel"
+        #"TbarBLNuB_schannel"
+        #"TTNuNu" 
+        #"TTLNu" 
+        #"TTZ"
+        #"TTW"
     ) 
     # WW, ZZ, WZ
     #"WJetsToLNu" 
@@ -20,10 +21,14 @@ SAMPLES_2022_23=(
     #"DYJetsToLL_50" 
 SAMPLES_2024=(
         "TTH_Hto2B_nonsemilep"
-        "TWminus" 
-        "TWplus"
-        "TTLL_ML_to50" 
-        "TTLL_ML_50" 
+        #"TWminus" 
+        #"TWplus"
+        #"TTLL_ML_to50" 
+        #"TTLL_ML_50" 
+        #"TTNuNu" 
+        #"TTLNu" 
+        #"TTZ"
+        #"TTW"
     )
     #"DYto2L-PtLL_100_200_1J_PtLL_100_200_1J" 
     #"DYto2L-PtLL_200_400_2J_PtLL_200_400_2J" 
@@ -31,7 +36,7 @@ SAMPLES_2024=(
     #"DYto2L-PtLL_400_600_2J_PtLL_400_600_2J" 
     #"DYto2L-PtLL_600_1J_PtLL_600_1J" 
     #"DYto2L-PtLL_600_2J_PtLL_600_2J" 
-TTBAR=("TTTo2L2Nu_ttC" "TTToLNu2Q_ttC" "TTBBtoLNu2Q_4FS_ttB" "TTBBto2L2Nu_4FS_ttB" "TTTo2L2Nu_ttLF" "TTToLNu2Q_ttLF") # 5FS for ttC and ttLF subsamples and 4FS for ttB
+TTBAR=("TTTo2L2Nu_ttC" "TTToLNu2Q_ttC" "TTBBtoLNu2Q_4FS_ttB" "TTBBto2L2Nu_4FS_ttB" "TTTo2L2Nu_ttLF" "TTToLNu2Q_ttLF") # "TTHtoNon2B_ttB" "TTHtoNon2B_ttLF" "TTHtoNon2B_ttC") # 5FS for ttC and ttLF subsamples and 4FS for ttB
 
 final_state=semileptonic
 
@@ -65,7 +70,7 @@ for year in "2024";
 do
     input_files=()
     genmatched_input_files=(
-        "$EOS_DIR/parquet_overall/TTH_Hto2B_genmatching_${year}.parquet"
+        "$EOS_DIR/parquet_overall/TTH_Hto2B_genmatching_2024.parquet"
     )
     # Check each file and add to array if it exists
     for sample in ${SAMPLES_2024[@]};
