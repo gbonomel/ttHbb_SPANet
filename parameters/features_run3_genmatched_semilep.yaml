@@ -7,6 +7,8 @@ features:
       btag_L: btag_L
       btag_M: btag_M
       btag_T: btag_T
+      btag_XT: btag_XT
+      btag_XXT: btag_XXT
     LeptonGood:
       pt: pt
       eta: eta
@@ -28,7 +30,8 @@ features:
       mbb_max: mbb_max
 
   by_sample:
-    TTH_Hto2B:
+    # key = PocketCoffea sample name as in the coffea cutflow (subsamples are named <sample>__<subsample>)
+    MC_TTH-Hbb:
       PartonInitial:
         pt: pt
         eta: eta
@@ -65,6 +68,8 @@ features:
         btag_L: btag_L
         btag_M: btag_M
         btag_T: btag_T
+        #btag_XT: btag_XT
+        #btag_XXT: btag_XXT
         dRMatchedJet: dRMatchedJet
         prov: provenance
       Generator:

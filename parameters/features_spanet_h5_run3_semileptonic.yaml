@@ -1,22 +1,105 @@
 input:
-  Jet: [MASK, pt, eta, phi, btag_L, btag_M, btag_T]
+  Jet: [MASK, pt, eta, phi, btag_L, btag_M, btag_T, btag_XT, btag_XXT]
   Lepton: [pt, eta, phi, pdgId]
   Met: [pt, phi]
-  Event: [ht] #, bjets_ht, lightjets_ht, drbb_min, detabb_min, dphibb_min, drbb_avg, mbb_closest, mbb_min, mbb_max]
-
+  Event: [ht] 
 collection:
   Jet: JetGood
   Lepton: LeptonGood
   Met: PuppiMET
 
+
 particles: [t1, t2, h]
 
 mapping_sample:
-  TTH_Hto2B: tthbb
-  #TTHtoNon2B: tthcc
+  MC_TTH_Hto2B_M-125: tthbb
+  MC_TTH-Hto2B-TTto2L2Nu_Par-M-125: tthbb
+  MC_TTH-Hto2B-TTtoLNu2Q_Par-M-125: tthbb
+  MC_TTH-HtoNon2B_Par-M-125: tthnonbb
+  MC_TTHtoNon2B_M-125: tthnonbb
   ttB: ttbb
   ttC: ttcc
   ttLF: ttlf
+  #MC_TTto2L2Nu
+  #MC_TTto2L2Nu-BBDPS
+  #MC_TTto4Q
+  #MC_TTto4Q-BBDPS
+  #MC_TTtoLNu2Q
+  #MC_TTtoLNu2Q-BBDPS
+  #MC_TTBB-TTto2L2Nu
+  #MC_TTBB-TTto4Q
+  #MC_TTBB-TTtoLNu2Q
+  MC_DYto2E_Bin-MLL-10to50: vjets
+  MC_DYto2E-2Jets_Bin-MLL-50: vjets
+  MC_DYto2L-4Jets_MLL-120_HT-100to400: vjets
+  MC_DYto2L-4Jets_MLL-120_HT-1500to2500: vjets
+  MC_DYto2L-4Jets_MLL-120_HT-2500: vjets
+  MC_DYto2L-4Jets_MLL-120_HT-400to800: vjets
+  MC_DYto2L-4Jets_MLL-120_HT-40to70: vjets
+  MC_DYto2L-4Jets_MLL-120_HT-70to100: vjets
+  MC_DYto2L-4Jets_MLL-120_HT-800to1500: vjets
+  MC_DYto2L-4Jets_MLL-4to50_HT-100to400: vjets
+  MC_DYto2L-4Jets_MLL-4to50_HT-1500to2500: vjets
+  MC_DYto2L-4Jets_MLL-4to50_HT-2500: vjets
+  MC_DYto2L-4Jets_MLL-4to50_HT-400to800: vjets
+  MC_DYto2L-4Jets_MLL-4to50_HT-40to70: vjets
+  MC_DYto2L-4Jets_MLL-4to50_HT-70to100: vjets
+  MC_DYto2L-4Jets_MLL-4to50_HT-800to1500: vjets
+  MC_DYto2L-4Jets_MLL-50to120_HT-100to400: vjets
+  MC_DYto2L-4Jets_MLL-50to120_HT-1500to2500: vjets
+  MC_DYto2L-4Jets_MLL-50to120_HT-2500: vjets
+  MC_DYto2L-4Jets_MLL-50to120_HT-400to800: vjets
+  MC_DYto2L-4Jets_MLL-50to120_HT-40to70: vjets
+  MC_DYto2L-4Jets_MLL-50to120_HT-70to100: vjets
+  MC_DYto2L-4Jets_MLL-50to120_HT-800to1500: vjets
+  MC_DYto2Mu-2Jets_Bin-MLL-50: vjets
+  MC_DYto2Mu_Bin-MLL-10to50: vjets
+  MC_DYto2Tau-2Jets_Bin-MLL-50: vjets
+  MC_TWminusto2L2Nu: singlet
+  MC_TWminustoLNu2Q: singlet
+  MC_TbarWplusto2L2Nu: singlet
+  MC_TbarWplustoLNu2Q: singlet
+  MC_TBbarQtoLNu-t-channel-4FS: singlet
+  MC_TbarBQtoLNu-t-channel-4FS: singlet
+  MC_TBbartoLplusNuBbar-s-channel-4FS: singlet
+  MC_TbarBtoLminusNuB-s-channel-4FS: singlet
+  MC_TTLL_Bin-MLL-4to50: ttv
+  MC_TTLL_Bin-MLL-50: ttv
+  MC_TTLL_MLL-4to50: ttv
+  MC_TTLL_MLL-50: ttv
+  MC_TTLNu-1Jets: ttv
+  MC_TTNuNu: ttv
+  MC_TTW-WtoQQ-1Jets: ttv
+  MC_TTZ-ZtoQQ-1Jets: ttv
+  MC_TTZ-ZtoQQ-TTto2L2Nu-1Jets: ttv
+  MC_TTZ-ZtoQQ-TTtoLNu2Q-1Jets: ttv
+  MC_WtoLNu-4Jets_Bin-HT-100to400-MLNu-0to120: vjets
+  MC_WtoLNu-4Jets_Bin-HT-100to400-MLNu-120: vjets
+  MC_WtoLNu-4Jets_Bin-HT-1500to2500-MLNu-0to120: vjets
+  MC_WtoLNu-4Jets_Bin-HT-1500to2500-MLNu-120: vjets
+  MC_WtoLNu-4Jets_Bin-HT-400to800-MLNu-0to120: vjets
+  MC_WtoLNu-4Jets_Bin-HT-400to800-MLNu-120: vjets
+  MC_WtoLNu-4Jets_Bin-HT-40to100-MLNu-0to120: vjets
+  MC_WtoLNu-4Jets_Bin-HT-800to1500-MLNu-0to120: vjets
+  MC_WtoLNu-4Jets_Bin-HT-800to1500-MLNu-120: vjets
+  MC_WtoLNu-4Jets_MLNu-0to120_HT-100to400: vjets
+  MC_WtoLNu-4Jets_MLNu-0to120_HT-1500to2500: vjets
+  MC_WtoLNu-4Jets_MLNu-0to120_HT-400to800: vjets
+  MC_WtoLNu-4Jets_MLNu-0to120_HT-40to100: vjets
+  MC_WtoLNu-4Jets_MLNu-0to120_HT-800to1500: vjets
+  MC_WtoLNu-4Jets_MLNu-120_HT-100to400: vjets
+  MC_WtoLNu-4Jets_MLNu-120_HT-1500to2500: vjets
+  MC_WtoLNu-4Jets_MLNu-120_HT-400to800: vjets
+  MC_WtoLNu-4Jets_MLNu-120_HT-40to100: vjets
+  MC_WtoLNu-4Jets_MLNu-120_HT-800to1500: vjets
+
+
+
+  #TTH_Hto2B: tthbb
+  #TTHtoNon2B: tthnonbb
+  #ttB: ttbb
+  #ttC: ttcc
+  #ttLF: ttlf
   #TTLL_ML_to50: ttv
   #TTLL_ML_50: ttv
   #TTNuNu: ttv
@@ -45,45 +128,92 @@ mapping_sample:
 
 mapping_encoding:
   signal:
-    TTH_Hto2B: 1
-    #TTHtoNon2B: 7
+    MC_TTH_Hto2B_M-125: 1
+    MC_TTH-Hto2B-TTto2L2Nu_Par-M-125: 1
+    MC_TTH-Hto2B-TTtoLNu2Q_Par-M-125: 1
     ttB: 2
     ttC: 3
     ttLF: 4
-    #TTLL_ML_to50: 5
-    #TTLL_ML_50: 5
-    #TTNuNu: 5
-    #TTLNu: 5
-    #TTZ: 5
-    #TTW: 5
-    #TWminus: 6
-    #TWplus: 6
-    #TBbarQ_tchannel: 6
-    #TbarBQ_tchannel: 6
-    #TBbarLNuB_schannel: 6
-    #TbarBLNuB_schannel: 6
-    #WJetsToLNu: 7
-    #DYJetsToLL_10_50: 7
-    #DYto2L-PtLL_100_200_1J_PtLL_100_200_1J: 7 
-    #DYto2L-PtLL_200_400_2J_PtLL_200_400_2J: 7
-    #DYto2L-PtLL_400_600_1J_PtLL_400_600_1J: 7
-    #DYto2L-PtLL_400_600_2J_PtLL_400_600_2J: 7
-    #DYto2L-PtLL_600_1J_PtLL_600_1J: 7
-    #DYto2L-PtLL_600_2J_PtLL_600_2J: 7
-    #ZZ: 8
-    #WZ: 8
-    #WW: 8
+    #MC_TTto2L2Nu
+    #MC_TTto2L2Nu-BBDPS
+    #MC_TTto4Q
+    #MC_TTto4Q-BBDPS
+    #MC_TTtoLNu2Q
+    #MC_TTtoLNu2Q-BBDPS
+    #MC_TTBB-TTto2L2Nu
+    #MC_TTBB-TTto4Q
+    #MC_TTBB-TTtoLNu2Q
+    MC_TTLL_Bin-MLL-4to50: 5
+    MC_TTLL_Bin-MLL-50: 5
+    MC_TTLL_MLL-4to50: 5
+    MC_TTLL_MLL-50: 5
+    MC_TTLNu-1Jets: 5
+    MC_TTNuNu: 5
+    MC_TTW-WtoQQ-1Jets: 5
+    MC_TTZ-ZtoQQ-1Jets: 5
+    MC_TTZ-ZtoQQ-TTto2L2Nu-1Jets: 5
+    MC_TTZ-ZtoQQ-TTtoLNu2Q-1Jets: 5
+    MC_TWminusto2L2Nu: 6
+    MC_TWminustoLNu2Q: 6
+    MC_TbarWplusto2L2Nu: 6
+    MC_TbarWplustoLNu2Q: 6
+    MC_TBbarQtoLNu-t-channel-4FS: 6
+    MC_TbarBQtoLNu-t-channel-4FS: 6
+    MC_TBbartoLplusNuBbar-s-channel-4FS: 6
+    MC_TbarBtoLminusNuB-s-channel-4FS: 6
+    MC_TTH-HtoNon2B_Par-M-125: 7
+    MC_TTHtoNon2B_M-125: 7
+
+    #decide if we want to include those classes in the training 
+    MC_DYto2E_Bin-MLL-10to50: 8
+    MC_DYto2E-2Jets_Bin-MLL-50: 8 
+    MC_DYto2L-4Jets_MLL-120_HT-100to400: 8
+    MC_DYto2L-4Jets_MLL-120_HT-1500to2500: 8
+    MC_DYto2L-4Jets_MLL-120_HT-2500: 8
+    MC_DYto2L-4Jets_MLL-120_HT-400to800: 8
+    MC_DYto2L-4Jets_MLL-120_HT-40to70: 8
+    MC_DYto2L-4Jets_MLL-120_HT-70to100: 8
+    MC_DYto2L-4Jets_MLL-120_HT-800to1500: 8
+    MC_DYto2L-4Jets_MLL-4to50_HT-100to400: 8
+    MC_DYto2L-4Jets_MLL-4to50_HT-1500to2500: 8
+    MC_DYto2L-4Jets_MLL-4to50_HT-2500: 8
+    MC_DYto2L-4Jets_MLL-4to50_HT-400to800: 8
+    MC_DYto2L-4Jets_MLL-4to50_HT-40to70: 8
+    MC_DYto2L-4Jets_MLL-4to50_HT-70to100: 8
+    MC_DYto2L-4Jets_MLL-4to50_HT-800to1500: 8
+    MC_DYto2L-4Jets_MLL-50to120_HT-100to400: 8
+    MC_DYto2L-4Jets_MLL-50to120_HT-1500to2500: 8
+    MC_DYto2L-4Jets_MLL-50to120_HT-2500: 8
+    MC_DYto2L-4Jets_MLL-50to120_HT-400to800: 8
+    MC_DYto2L-4Jets_MLL-50to120_HT-40to70: 8
+    MC_DYto2L-4Jets_MLL-50to120_HT-70to100: 8
+    MC_DYto2L-4Jets_MLL-50to120_HT-800to1500: 8
+    MC_DYto2Mu-2Jets_Bin-MLL-50: 8
+    MC_DYto2Mu_Bin-MLL-10to50: 8
+    MC_DYto2Tau-2Jets_Bin-MLL-50: 8
+    MC_WtoLNu-4Jets_Bin-HT-100to400-MLNu-0to120: 8
+    MC_WtoLNu-4Jets_Bin-HT-100to400-MLNu-120: 8
+    MC_WtoLNu-4Jets_Bin-HT-1500to2500-MLNu-0to120: 8
+    MC_WtoLNu-4Jets_Bin-HT-1500to2500-MLNu-120: 8
+    MC_WtoLNu-4Jets_Bin-HT-400to800-MLNu-0to120: 8
+    MC_WtoLNu-4Jets_Bin-HT-400to800-MLNu-120: 8
+    MC_WtoLNu-4Jets_Bin-HT-40to100-MLNu-0to120: 8
+    MC_WtoLNu-4Jets_Bin-HT-800to1500-MLNu-0to120: 8
+    MC_WtoLNu-4Jets_Bin-HT-800to1500-MLNu-120: 8
+    MC_WtoLNu-4Jets_MLNu-0to120_HT-100to400: 8
+    MC_WtoLNu-4Jets_MLNu-0to120_HT-1500to2500: 8
+    MC_WtoLNu-4Jets_MLNu-0to120_HT-400to800: 8
+    MC_WtoLNu-4Jets_MLNu-0to120_HT-40to100: 8
+    MC_WtoLNu-4Jets_MLNu-0to120_HT-800to1500: 8
+    MC_WtoLNu-4Jets_MLNu-120_HT-100to400: 8
+    MC_WtoLNu-4Jets_MLNu-120_HT-1500to2500: 8
+    MC_WtoLNu-4Jets_MLNu-120_HT-400to800: 8
+    MC_WtoLNu-4Jets_MLNu-120_HT-40to100: 8
+    MC_WtoLNu-4Jets_MLNu-120_HT-800to1500: 8
+    
 
 classification:
   EVENT:
-#    - tthbb
-#    - ttbb
-#    - ttcc
-#    - ttlf
-#    - wjets
-#    - ttv
-#    - singlet
-#    - vv
     - signal
 
 frac_train: 0.7
