@@ -15,7 +15,8 @@ The datasets to process are listed in the configuration, per group of years and 
 (e.g. tthbb, ttbar, others), and shared between the parquet and h5 steps. Their PocketCoffea sample is
 read from the merged coffea file (`merged_coffea`, PocketCoffea job outputs merged beforehand), their
 subsamples (ttB, ttC, ttLF, ...) from the folder structure of the ntuples: a dataset split in subsamples
-gives one parquet file per subsample.
+gives one parquet file per subsample. Data are split in eras (e.g. DATA_Muon_2024_EraC): listing DATA_Muon takes all
+the eras of the year in the merged coffea file, with one parquet file per era.
 Run it in the PocketCoffea container (it needs coffea and pyyaml), with a valid kerberos token to read EOS.
 
 Examples:
@@ -43,8 +44,8 @@ YEARS = ["2022_preEE", "2022_postEE", "2023_preBPix", "2023_postBPix", "2024"]
 @dataclass
 class Job:
     '''One merged parquet file: a dataset (or one of its subsamples) of a given year.'''
-    dataset: str      # full PocketCoffea dataset name, e.g. MC_TTtoLNu2Q_2022_preEE
-    base: str         # dataset name without year, e.g. MC_TTtoLNu2Q
+    dataset: str      # full PocketCoffea dataset name, e.g. MC_TTtoLNu2Q_2022_preEE or DATA_Muon_2024_EraC
+    base: str         # dataset name without year (and era), e.g. MC_TTtoLNu2Q
     year: str
     group: str        # group of the dataset list in the configuration, e.g. ttbar
     sample: str       # PocketCoffea sample, e.g. MC_TT
@@ -52,6 +53,7 @@ class Job:
     coffea: str       # merged coffea file containing the dataset
     ntuples: str      # folder with the parquet chunks (where the _metadata is created)
     parquet: str      # merged output parquet file
+    era: str = None   # data era, e.g. EraC, None for MC
 
     @property
     def label(self):
@@ -60,7 +62,7 @@ class Job:
 
     @property
     def name(self):
-        return f"{self.label}_{self.year}"
+        return f"{self.label}_{self.year}_{self.era}" if self.era else f"{self.label}_{self.year}"
 
 
 class UniqueKeyLoader(yaml.SafeLoader):
@@ -134,10 +136,18 @@ class Pipeline:
         return jobs
 
     def dataset_jobs(self, base, year, group):
-        dataset = f"{base}_{year}"
-        if dataset not in self.datasets:
-            self.errors.append(f"Dataset {dataset} ({group}) not found in {self.coffea}")
-            return []
+        # Data have one dataset per era, after the year, e.g. DATA_Muon_2024_EraC
+        prefix = f"{base}_{year}"
+        datasets = [prefix] if prefix in self.datasets else \
+            sorted(d for d in self.datasets if d.startswith(f"{prefix}_Era"))
+        if not datasets:
+            self.errors.append(f"Dataset {prefix} ({group}) not found in {self.coffea}")
+        jobs = []
+        for dataset in datasets:
+            jobs += self.ntuples_jobs(dataset, base, year, group, dataset[len(prefix) + 1:] or None)
+        return jobs
+
+    def ntuples_jobs(self, dataset, base, year, group, era):
         sample, _ = self.datasets[dataset]
         dataset_dir = os.path.join(self.cfg["ntuples"], dataset)
         try:
@@ -159,8 +169,11 @@ class Pipeline:
             self.warnings.append(f"No category `{self.cat}` in {dataset_dir}")
         jobs = []
         for subsample, folder in folders.items():
+            # Data ntuples are in a folder named after the sample, which is not a subsample of the cutflow
+            if subsample == sample and f"{sample}__{subsample}" not in self.cutflow_samples:
+                subsample = None
             job = Job(dataset, base, year, group, sample, subsample, self.coffea,
-                      os.path.join(folder, self.cat, self.var), None)
+                      os.path.join(folder, self.cat, self.var), None, era)
             job.parquet = os.path.join(self.parquet_dir, year, f"{job.name}.parquet")
             jobs.append(job)
         return jobs
