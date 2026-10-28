@@ -37,6 +37,19 @@ class SPANetDataset(Dataset):
         self.targets = self.cfg["particles"]
         self.classification_targets = self.cfg["classification"]
 
+    def columns_to_read(self, input_file):
+        '''Only the collections used for the h5 file: reading all the columns of the parquet file (parton
+        and generator level collections) takes ~3 times more memory.'''
+        import pyarrow.parquet as pq
+        available = pq.read_schema(input_file).names
+        needed = {"event", "Event", "TargetLepTop", "TargetLepAntiTop", self.collection["Jet"]}
+        if "Event" in self.input_features:
+            needed.add("JetGood")   # ht
+        needed.update(self.collection[obj] for obj in self.input_features if obj != "Event")
+        columns = [c for c in available if c in needed]
+        print(f"Reading {len(columns)}/{len(available)} columns: {columns}")
+        return columns
+
     def select_fully_matched(self):
         '''Select only fully matched events.'''
         mask_fullymatched = ak.sum(self.dataset.df[self.collection["Jet"]].matched == True, axis=1) >= 4

@@ -10,6 +10,7 @@ parser.add_argument('-o', '--output', type=str, required=True, help='Output parq
 parser.add_argument('--dataset', type=str, required=True, help='Dataset name')
 parser.add_argument('--cat', type=str, default="semilep_LHE", required=False, help='Event category')
 parser.add_argument('-n', '--ntuples', default=None, type=str, required=False, help='Additional input parquet file with ntuples')
+parser.add_argument('--sample', default=None, type=str, required=False, help='Sample (or <sample>__<subsample>) of the ntuples in the cutflow. If not given, it is guessed from the number of events')
 
 args = parser.parse_args()
 
@@ -19,6 +20,7 @@ dataset = ParquetDataset(
     args.cfg,
     args.dataset,
     args.cat,
-    args.ntuples
+    args.ntuples,
+    args.sample
 )
 dataset.save_parquet()

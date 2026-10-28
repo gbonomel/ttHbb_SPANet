@@ -97,6 +97,10 @@ class Dataset:
                 df["event"] = ak.with_field(df.event, factor * df.event.weight, "weight")
         return df
 
+    def columns_to_read(self, input_file):
+        '''Columns of the parquet file to read, to limit the memory usage. None reads all the columns.'''
+        return None
+
     def load_input(self):
         '''Load the input file.'''
         # Check if the parquet files exist
@@ -110,10 +114,10 @@ class Dataset:
         dfs = []
         for input_file in self.input_files:
             print("Reading file: ", input_file)
-            df = ak.from_parquet(input_file)
+            df = ak.from_parquet(input_file, columns=self.columns_to_read(input_file))
             # For data, save weights of 1 for all events
             if self.has_data & (not "event" in df.fields):
-                df["event"] = ak.zip({"weight": np.ones(len(df), dtype=np.float)})
+                df["event"] = ak.zip({"weight": np.ones(len(df), dtype=float)})
             # Reweigh the events by a factor
             if self.reweigh:
                 df = self.scale_weights(df, self.get_sample_name(input_file))

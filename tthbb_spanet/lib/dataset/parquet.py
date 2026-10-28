@@ -16,13 +16,15 @@ from coffea.processor.accumulator import column_accumulator
 from coffea.processor import accumulate
 
 class ParquetDataset:
-    def __init__(self, input_file, output_file, cfg, dataset, cat="semilep_LHE", input_ntuples=None):
+    def __init__(self, input_file, output_file, cfg, dataset, cat="semilep_LHE", input_ntuples=None, sample=None):
         self.input_file = input_file
         self.output_file = output_file
         self.cfg = cfg
         self.dataset = dataset
         self.cat = cat
         self.input_ntuples = input_ntuples
+        # Sample (or <sample>__<subsample>) of the ntuples in the cutflow. If None, it is guessed from the number of events
+        self.sample = sample
         self.tolerance = 5
 
         self.load_config()
@@ -63,6 +65,14 @@ class ParquetDataset:
     def samples(self):
         if self.schema == "coffea":
             return list(self.columns.keys())
+        elif self.schema == "parquet" and self.sample is not None:
+            if self.sample not in self.cutflow[self.dataset]:
+                raise ValueError(f"Sample {self.sample} not found in the cutflow of {self.dataset}: {list(self.cutflow[self.dataset].keys())}")
+            nevt = self.cutflow[self.dataset][self.sample]
+            nevt_val = nevt["nominal"] if isinstance(nevt, dict) else nevt
+            if not np.isclose(nevt_val, self.nevents, atol=self.tolerance):
+                raise ValueError(f"Sample {self.sample} has {nevt_val} events in the cutflow, but {self.nevents} events are in the ntuples.")
+            return [self.sample]
         elif self.schema == "parquet":
             samples = []
             print(f"DEBUG: Cutflow keys for dataset '{self.dataset}':")
@@ -103,7 +113,7 @@ class ParquetDataset:
         if self.input_ntuples:
             self.schema = "parquet"
             print("Reading input ntuples: ", self.input_ntuples)
-            self.events = ak.from_parquet(self.input_ntuples)
+            self.events = ak.from_parquet(self.input_ntuples, columns=self.columns_to_read())
             nevents = self.nevents
             print(f"Number of events: {nevents}")
         else:
@@ -114,6 +124,26 @@ class ParquetDataset:
         self.zipped_dict = {s : defaultdict(dict) for s in self.samples}
         self.features_dict = {s : defaultdict(dict) for s in self.samples}
         self.features_pad_dict = {s : defaultdict(dict) for s in self.samples}
+
+    def columns_to_read(self):
+        '''Columns of the ntuples needed for the features of `self.sample`, to limit the memory usage.
+        Return None (all columns) if the sample is not given or the schema of the ntuples is not available.'''
+        schema_file = os.path.join(self.input_ntuples, "_common_metadata")
+        if self.sample is None or not os.path.exists(schema_file):
+            return None
+        import pyarrow.parquet as pq
+        available = pq.read_schema(schema_file).names
+        features = dict(self.features["common"])
+        features.update(self.features["by_sample"].get(self.sample, {}))
+        needed = {"weight"}
+        for collection, variables in features.items():
+            for key_coffea in variables.values():
+                needed.add(f"{collection}_{key_coffea}")
+                if (collection == "JetGoodMatched") & (key_coffea == "provenance"):
+                    needed.add("PartonMatched_provenance")
+        columns = [c for c in available if c in needed]
+        print(f"Reading {len(columns)}/{len(available)} columns of the ntuples")
+        return columns
 
     def load_config(self):
         '''Load the features, features_pad, awkward_collections and matched_collections_dict

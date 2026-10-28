@@ -13,6 +13,7 @@ if __name__ == '__main__':
     parser.add_argument('--no_shuffle', action='store_true', help='If set, do not shuffle the dataset')
     parser.add_argument('--reweigh', action='store_true', help='If set, scale event weights by a factor as specified in the configuration file')
     parser.add_argument('--entrystop', type=int, default=None, required=False, help='Number of events to process')
+    parser.add_argument('--data', action='store_true', help='Input files are data: no parton matching targets, weights of 1 if missing')
 
     args = parser.parse_args()
 
@@ -23,7 +24,7 @@ if __name__ == '__main__':
         (not args.no_shuffle),
         args.reweigh,
         args.entrystop,
-        False,
+        args.data,
         args.fully_matched
     )
     dataset.save(args.output)
