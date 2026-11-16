@@ -7,6 +7,8 @@ features:
       btag_L: btag_L
       btag_M: btag_M
       btag_T: btag_T
+      #btag_XT: btag_XT
+      #btag_XXT: btag_XXT
     LeptonGood:
       pt: pt
       eta: eta
@@ -31,9 +33,9 @@ features:
       ttbb: ttbb
       ttcc: ttcc
       ttlf: ttlf
-      #ttv: ttv
-      #singletop: singletop
-      #tthnonbb: tthnonbb
+      ttv: ttv
+      singletop: singletop
+      tth_nonbb: tth_nonbb
 
   by_sample: {}
 

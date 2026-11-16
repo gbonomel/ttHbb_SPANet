@@ -12,6 +12,7 @@ collection:
 particles: [t1, t2, h]
 
 mapping_sample:
+  DATA: data                        # all the data files, e.g. DATA_Muon_2024_EraC
   MC_TTH_Hto2B_M-125: tthbb
   MC_TTH-Hto2B-TTto2L2Nu_Par-M-125: tthbb
   MC_TTH-Hto2B-TTtoLNu2Q_Par-M-125: tthbb
@@ -128,6 +129,7 @@ mapping_sample:
 
 mapping_encoding:
   signal:
+    DATA: 0                         # data: no true class
     MC_TTH_Hto2B_M-125: 1
     MC_TTH-Hto2B-TTto2L2Nu_Par-M-125: 1
     MC_TTH-Hto2B-TTtoLNu2Q_Par-M-125: 1
