@@ -1,0 +1,6 @@
+path: /afs/cern.ch/work/g/gbonomel/higgs/ttHbb_SPANet
+model: dctr_two_classifiers_disco
+job_flavour: workday
+ngpu: 1
+ncpu: 3
+request_memory: 48000

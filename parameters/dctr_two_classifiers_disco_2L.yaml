@@ -1,0 +1,46 @@
+# Training settings for scripts/dctr_two_classifiers_disco.py
+# (DCTR with two classifiers and DisCo decorrelation)
+
+# semileptonic (3rd bjet pt and eta used as DCTR inputs) or dileptonic (not used)
+channel: dileptonic
+
+cr_cuts:
+  tthbb_transformed_min: 0.35
+  tthbb_transformed_max: 0.7
+  ttlf_max: 0.2
+
+# training settings, shared by the two classifiers
+nepochs: 100
+patience: 10        # early stopping: stop if the validation loss does not improve for `patience` epochs, keep the best epoch
+batch_size: 4096
+lr: 1.0e-4
+weight_decay: 1.0e-4
+val_fraction: 0.2   # same train/validation split of the events for both classifiers and the decorrelation
+seed: 42
+
+# hidden layers of the two sub-classifiers
+hidden_data: [32, 32, 16]   # data vs ttbb + other bkg (statistics limited by the ~16k data events)
+hidden_bkg: [64, 64, 32]    # other bkg vs ttbb (MC only, high statistics)
+
+# DisCo decorrelation of the DCTR weight from the CR/SR label of the ttbb events (applied to clf_data only).
+# One model is trained per lambda (0 = no decorrelation, dCorr is still monitored).
+lambdas_disco: [0.01, 0.1]
+disco_batch_size: 4096   # ttbb CR + SR events per training step for the DisCo term (memory ~ disco_batch_size^2)
+n_val_disco_chunks: 20   # the validation dCorr is averaged over this many fixed subsamples of disco_batch_size events
+
+# lambdas of the models used for the evaluation plots and the export (null = all the lambdas in lambdas_disco).
+# The outputs of each one are saved in <output>/eval_lambda{lambda}
+lambdas_eval: null
+
+# folder with the saved state_dicts (dctr_model_lambda{lambda}_state_dict.pth) to skip the training (null = train)
+load_model_folder: null
+
+# rescale the final DCTR weight so that its weighted mean on the ttbb training events is exactly 1.
+# Keep false while developing: a closure far from 1 signals a training problem that the rescaling would hide.
+renormalize_closure: false
+
+# compute the DCTR weight terciles (L/M/H regions) per jet multiplicity (true) or inclusively (false)
+regions_by_njet: false
+
+# continuous inputs shown in the L/M/H corner plots
+corner_features: ["ht", "bjets_ht", "lightjets_ht", "drbb_min", "mbb_closest"]

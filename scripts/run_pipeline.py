@@ -5,6 +5,7 @@ Steps (in order), all the conversions are run one after the other:
   check     sanity checks of the configuration (always run)
   parquet   merge the ntuple chunks into one parquet file per dataset/subsample (always kept). The parquet
             _metadata of the chunks is created first if missing, and the conversion always reads through it.
+            Chunks with a different schema (e.g. float32 instead of float64 columns) are cast to a common one.
   h5        convert the merged parquet files into h5 files (only with --h5 or --steps h5)
 
 With --condor the sanity checks run locally and each parquet/h5 output becomes one HTCondor job (running this
@@ -24,6 +25,9 @@ Examples:
   python3 scripts/run_pipeline.py -c parameters/pipeline_run3_semileptonic.yaml --h5
   python3 scripts/run_pipeline.py -c parameters/pipeline_run3_semileptonic.yaml --steps h5 --years 2024
   python3 scripts/run_pipeline.py -c parameters/pipeline_run3_semileptonic.yaml --steps h5 --years 2024 --condor
+  # datasets of a group saved under another category name: run them separately
+  python3 scripts/run_pipeline.py -c parameters/pipeline_run3_spanet_dileptonic.yaml --h5 --groups ttbar others
+  python3 scripts/run_pipeline.py -c parameters/pipeline_run3_spanet_dileptonic.yaml --h5 --groups tthbb --category baseline_2j1b
 """
 import os
 import sys
@@ -91,10 +95,13 @@ class Pipeline:
         self.cfg = load_yaml(args.config)
         self.base_dir = self.cfg["base_dir"]
         self.python = self.cfg.get("python", "python")
-        self.cat = self.cfg["category"]
+        # --category: e.g. datasets whose ntuples were saved under another category name, run separately with --groups
+        self.cat = args.category or self.cfg["category"]
         self.var = self.cfg["variation"]
         all_years = [str(y) for g in self.cfg["datasets"].values() for y in g["years"]]
         self.years = [str(y) for y in args.years] if args.years else all_years
+        self.all_groups = {k for g in self.cfg["datasets"].values() for k in g if k != "years"}
+        self.groups = set(args.groups) if args.groups else self.all_groups
         self.parquet_dir = os.path.join(self.cfg["output"], "parquet_overall")
         self.h5_dir = os.path.join(self.cfg["output"], "h5_files")
         self.errors, self.warnings, self.failed = [], [], []
@@ -120,28 +127,39 @@ class Pipeline:
         self.datasets = {d: (m["sample"], m["year"]) for d, m in output["datasets_metadata"]["by_dataset"].items()}
         if self.cat not in output["cutflow"]:
             sys.exit(f"ERROR: category `{self.cat}` not in {self.coffea} (categories: {', '.join(output['cutflow'])})")
-        self.cutflow_samples = {s for d in output["cutflow"][self.cat].values() for s in d}
+        self.cutflow = output["cutflow"][self.cat]
+        self.cutflow_samples = {s for d in self.cutflow.values() for s in d}
+        # Samples of all the categories, to check the sample names of the features configuration
+        self.all_samples = {s for c in output["cutflow"].values() for d in c.values() if isinstance(d, dict) for s in d}
 
     def build_jobs(self):
         '''One job per dataset (or subsample) of the lists in `datasets` of the configuration.'''
         jobs = []
         for years_cfg in self.cfg["datasets"].values():
-            groups = {k: v or [] for k, v in years_cfg.items() if k != "years"}
-            for year in [str(y) for y in years_cfg["years"]]:
-                if year not in self.years:
-                    continue
-                for group, bases in groups.items():
-                    for base in bases:
+            groups = {k: v or [] for k, v in years_cfg.items() if k != "years" and k in self.groups}
+            years = [str(y) for y in years_cfg["years"] if str(y) in self.years]
+            for group, bases in groups.items():
+                for base in bases:
+                    # A dataset missing in all the years of its group is likely a typo (error), while a dataset
+                    # missing only in some years (not processed for them) is skipped with a warning
+                    missing = [y for y in years if not self.find_datasets(base, y)]
+                    if missing and len(missing) == len(years):
+                        self.errors.append(f"Dataset {base} ({group}) not found in {self.coffea} for {', '.join(missing)}")
+                    elif missing:
+                        self.warnings.append(f"Dataset {base} ({group}) not found in {self.coffea} for {', '.join(missing)}, skipping these years")
+                    for year in years:
                         jobs += self.dataset_jobs(base, year, group)
         return jobs
 
-    def dataset_jobs(self, base, year, group):
+    def find_datasets(self, base, year):
         # Data have one dataset per era, after the year, e.g. DATA_Muon_2024_EraC
         prefix = f"{base}_{year}"
-        datasets = [prefix] if prefix in self.datasets else \
+        return [prefix] if prefix in self.datasets else \
             sorted(d for d in self.datasets if d.startswith(f"{prefix}_Era"))
-        if not datasets:
-            self.errors.append(f"Dataset {prefix} ({group}) not found in {self.coffea}")
+
+    def dataset_jobs(self, base, year, group):
+        prefix = f"{base}_{year}"
+        datasets = self.find_datasets(base, year)
         jobs = []
         for dataset in datasets:
             jobs += self.ntuples_jobs(dataset, base, year, group, dataset[len(prefix) + 1:] or None)
@@ -175,15 +193,26 @@ class Pipeline:
             job = Job(dataset, base, year, group, sample, subsample, self.coffea,
                       os.path.join(folder, self.cat, self.var), None, era)
             job.parquet = os.path.join(self.parquet_dir, year, f"{job.name}.parquet")
+            # Subsamples without events after the selection have (empty) chunks but nothing to convert
+            nevents = self.cutflow[dataset].get(f"{sample}__{subsample}" if subsample else sample)
+            if isinstance(nevents, dict):
+                nevents = nevents.get(self.var)
+            if nevents == 0:
+                self.warnings.append(f"No events for {job.name} in the cutflow, skipping it")
+                continue
             jobs.append(job)
         return jobs
 
     def h5_files(self):
         '''Return {output h5: ([input parquet files], year, file configuration)} for the selected years.
-        Each h5 file takes all the datasets of the groups in `groups` and the parquet files in `subsamples`.'''
+        Each h5 file takes all the datasets of the groups in `groups` and the parquet files in `subsamples`.
+        With --groups, only the h5 files fed by the selected groups are kept.'''
         out = {}
+        labels = {job.label for job in self.jobs}
         for name, fcfg in self.cfg["h5"]["files"].items():
             groups, subsamples = fcfg.get("groups") or [], fcfg.get("subsamples") or []
+            if self.args.groups and not (set(groups) & self.groups or set(subsamples) & labels):
+                continue
             for year in self.years:
                 jobs = [job for job in self.jobs if job.year == year]
                 inputs = [job.parquet for job in jobs if job.group in groups or job.label in subsamples]
@@ -199,25 +228,27 @@ class Pipeline:
         for y in self.years:
             if y not in YEARS:
                 self.errors.append(f"Unknown year {y}")
+        for g in self.groups - self.all_groups:
+            self.errors.append(f"Unknown group {g} (groups: {', '.join(sorted(self.all_groups))})")
 
-        # Parquet features config: sample-specific features must refer to existing samples
+        # Parquet features config: sample-specific features must refer to existing samples (of any category,
+        # e.g. the signal samples are not in the category of the background with --category/--groups)
         pfeat = load_yaml(self.path(self.cfg["parquet"]["cfg"]))
         for section in ("features", "features_pad"):
             for key in (pfeat[section].get("by_sample") or {}):
-                if key not in self.cutflow_samples:
+                if key not in self.all_samples:
                     self.errors.append(f"{self.cfg['parquet']['cfg']}: {section}.by_sample.{key} does not match any "
-                                       f"sample of the cutflow ({', '.join(sorted(self.cutflow_samples))})")
+                                       f"sample of the cutflow ({', '.join(sorted(self.all_samples))})")
 
         # h5 config: each input file must match exactly one key of mapping_sample, present in mapping_encoding
         if "h5" in self.steps:
             hcfg = load_yaml(self.path(self.cfg["h5"]["cfg"]))
             mapping = hcfg["mapping_sample"]
             encodings = hcfg.get("mapping_encoding", {})
-            groups = {k for g in self.cfg["datasets"].values() for k in g if k != "years"}
             for name, fcfg in self.cfg["h5"]["files"].items():
                 for group in fcfg.get("groups") or []:
-                    if group not in groups:
-                        self.errors.append(f"h5 file {name}: unknown group {group} (groups: {', '.join(sorted(groups))})")
+                    if group not in self.all_groups:
+                        self.errors.append(f"h5 file {name}: unknown group {group} (groups: {', '.join(sorted(self.all_groups))})")
             for output, (inputs, _, _) in self.h5_files().items():
                 if not inputs:
                     self.warnings.append(f"{output}: no input parquet selected")
@@ -294,7 +325,7 @@ class Pipeline:
             return True
         print(f"[metadata] (re)creating {job.ntuples}/_metadata")
         return self.run(f"metadata {job.name}",
-                        [self.python, "-c", "import sys, awkward as ak; ak.to_parquet.dataset(sys.argv[1])", job.ntuples])
+                        [self.python, self.path("tthbb_spanet/scripts/dataset/create_parquet_metadata.py"), job.ntuples])
 
     @staticmethod
     def parquet_is_outdated(job):
@@ -370,10 +401,13 @@ class Pipeline:
         os.makedirs(folder, exist_ok=True)
         config = os.path.abspath(self.args.config)
         flags = [f for f in ("overwrite", "force") if getattr(self.args, f)]
+        options = (["--category", self.args.category] if self.args.category else []) + \
+                  (["--groups", *self.args.groups] if self.args.groups else [])
         with open(os.path.join(folder, "jobs.txt"), "w") as f:
             for step, name, year, memory in tasks:
                 scfg = ccfg.get(step) or {}
-                args = ["-c", config, "--steps", step, "--years", year, "--only", name, *[f"--{x}" for x in flags]]
+                args = ["-c", config, "--steps", step, "--years", year, "--only", name, *options,
+                        *[f"--{x}" for x in flags]]
                 # The last variable of `queue ... from` takes the rest of the line, i.e. all the arguments
                 f.write(f"{name} {memory or scfg.get('request_memory', 4000)} {scfg.get('request_cpus', 1)} "
                         f"{scfg.get('job_flavour', 'workday')} {' '.join(args)}\n")
@@ -438,6 +472,9 @@ if __name__ == "__main__":
     parser.add_argument("--h5", action="store_true", help="Also create the h5 files")
     parser.add_argument("--steps", nargs="+", choices=ALL_STEPS, help="Run only these steps (overrides --h5)")
     parser.add_argument("--years", nargs="+", help="Override the years of the configuration")
+    parser.add_argument("--groups", nargs="+",
+                        help="Process only these dataset groups (e.g. tthbb) and the h5 files they feed")
+    parser.add_argument("--category", help="Override the category of the configuration (folder of the ntuples and cutflow)")
     parser.add_argument("--overwrite", action="store_true", help="Recreate existing outputs (by default they are skipped)")
     parser.add_argument("--dry-run", action="store_true", help="Only print the commands")
     parser.add_argument("--check-only", action="store_true", help="Only run the sanity checks")

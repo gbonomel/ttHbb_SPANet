@@ -25,6 +25,9 @@ parser.add_argument("-o", "--output", type=str, default=None,
                     help="Output directory for plots and DCTR model (for dnn_optimization).")
 parser.add_argument("--nepochs", type=int, default=100,
                     help="Number of epochs to train for (for dnn_optimization).")
+# DCTR with two classifiers and DisCo specific arguments
+parser.add_argument("--dctr-config", type=str, default=None,
+                    help="YAML file with the DCTR training settings (for dctr_two_classifiers_disco).")
 # Parquet inference specific arguments
 parser.add_argument("--parquet-input", type=str, default=None,
                     help="Input parquet file for ONNX inference (for parquet_inference).")
@@ -100,6 +103,19 @@ elif model == "dnn_optimization":
     
     sub['Executable'] = f"{basedir}/jobs/{model}.sh"
     sub['arguments'] = f"{args.input} {args.model_file} {args.event} {args.output} {args.nepochs}"
+    sub['Output'] = f"{args.output}/jobs/output/{model}-$(ClusterId).$(ProcId).out"
+    sub['Error']  = f"{args.output}/jobs/error/{model}-$(ClusterId).$(ProcId).err"
+    sub['Log']    = f"{args.output}/jobs/log/{model}-$(ClusterId).log"
+    sub['MY.SendCredential'] = True
+    sub['MY.SingularityImage'] = '"/cvmfs/unpacked.cern.ch/registry.hub.docker.com/cmsml/cmsml:latest"'
+    sub['+JobFlavour'] = f'"{job_flavour}"'
+elif model == "dctr_two_classifiers_disco":
+    # Validate required arguments for dctr_two_classifiers_disco
+    if not all([args.input, args.output, args.dctr_config]):
+        raise ValueError("dctr_two_classifiers_disco requires --input, --output, and --dctr-config arguments")
+
+    sub['Executable'] = f"{basedir}/jobs/{model}.sh"
+    sub['arguments'] = f"{args.input} {args.output} {args.dctr_config} {args.nepochs}"
     sub['Output'] = f"{args.output}/jobs/output/{model}-$(ClusterId).$(ProcId).out"
     sub['Error']  = f"{args.output}/jobs/error/{model}-$(ClusterId).$(ProcId).err"
     sub['Log']    = f"{args.output}/jobs/log/{model}-$(ClusterId).log"
