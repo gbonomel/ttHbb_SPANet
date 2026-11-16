@@ -1,28 +1,25 @@
 INPUTS:
     SEQUENTIAL:
         Jet:
-            pt: log_normalize
+            pt: log_normalize  # filled with bRegPt in the parquet step (features_run3_genmatched_dilep.yaml)
             eta: normalize
             phi: normalize
-            #btag: none
             btag_L: none
             btag_M: none
             btag_T: none
-            #btag_XT: none
-            #btag_XXT: none
+            btag_XT: none
+            btag_XXT: none
         Lepton:  #since dileptonic so 2 leptons --> need sequential. In semi can put in global
             pt: log_normalize
             eta: normalize
             phi: normalize
-            is_electron: none
-
+            pdgId: none  # filled with is_electron in the parquet step
     GLOBAL:
         Met:
-            pt: log_normalize
-            #eta: normalize
+            pt: log_normalize  # filled with bRegPt in the parquet step
             phi: normalize
         Event:
-            ht: normalize
+            ht: log_normalize
 EVENT:
     t1:
         - b

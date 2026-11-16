@@ -25,7 +25,7 @@
     "masking": "Multiplicative",
     "linear_prelu_activation": 1,
     "event_info_file": "/afs/cern.ch/work/g/gbonomel/higgs/ttHbb_SPANet/event_files/ttHbb_semileptonic_run3.yaml",
-    "training_file": "/eos/cms/store/group/phys_higgs/ttHbb/ntuples/ttHbb_export/training_5wps_multiplewp/no_triggerSF/semilep_channel/h5_files/bkg_tthbb_genmatched_1L_train_16049081.h5",
+    "training_file": "/eos/cms/store/group/phys_higgs/ttHbb/ntuples/ttHbb_export/training_5wps_multiplewp/no_triggerSF/semilep_channel/h5_files/bkg_dtthbb_genmatche_1L_train_16049081.h5",
     "validation_file": "/eos/cms/store/group/phys_higgs/ttHbb/ntuples/ttHbb_export/training_5wps_multiplewp/no_triggerSF/semilep_channel/h5_files/bkg_tthbb_genmatched_1L_test_4012277.h5",
     "testing_file": "",
     "normalize_features": 1,

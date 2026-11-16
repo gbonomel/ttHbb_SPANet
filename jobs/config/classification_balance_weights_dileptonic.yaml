@@ -1,6 +1,7 @@
-path: /afs/cern.ch/work/s/sspallac/private/project/ttHbb_SPANet
+path: /afs/cern.ch/work/g/gbonomel/higgs/ttHbb_SPANet
 model: classification_balance_weights_dileptonic
-job_flavour: nextweek
+job_flavour: testmatch
 ngpu: 1
 ncpu: 9
 gpu_memory: 24000
+request_memory: 48000

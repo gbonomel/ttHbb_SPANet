@@ -1,7 +1,7 @@
 INPUTS:
     SEQUENTIAL:
         Jet:
-            bRegPt: log_normalize
+            pt: log_normalize
             eta: normalize
             phi: normalize
             btag_L: none
@@ -12,7 +12,7 @@ INPUTS:
 
     GLOBAL:
         Met:
-            bRegPt: log_normalize
+            pt: log_normalize
             phi: normalize
         Lepton:
             pt: log_normalize
