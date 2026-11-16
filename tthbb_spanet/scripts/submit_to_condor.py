@@ -68,6 +68,9 @@ if args.checkpoint:
 # GPU and CPU requirements
 sub['request_cpus'] = f"{args.ncpu}"
 sub['request_gpus'] = f"{args.ngpu}"
+# Memory requirement (MB): SPANet loads the full training and validation files in memory
+if 'request_memory' in cfg:
+    sub['request_memory'] = f"{cfg['request_memory']}"
 
 if args.good_gpus:
     sub['requirements'] = '(TARGET.CUDACapability >= 8.0) && (regexp("A100", TARGET.GPUs_DeviceName) || regexp("V100", TARGET.GPUs_DeviceName) || regexp("H100", TARGET.GPUs_DeviceName)) && (Machine != "b9g57n6415.cern.ch") && (Machine != "b9pgpun001.cern.ch")'

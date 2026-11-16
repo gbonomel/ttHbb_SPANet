@@ -101,36 +101,42 @@ class Dataset:
         '''Columns of the parquet file to read, to limit the memory usage. None reads all the columns.'''
         return None
 
-    def load_input(self):
-        '''Load the input file.'''
-        # Check if the parquet files exist
+    def check_inputs(self):
+        '''Check that the input parquet files exist.'''
         for input_file in self.input_files:
             if not os.path.exists(input_file):
                 raise ValueError(f"Input file {input_file} does not exist.")
             if not input_file.endswith(".parquet"):
                 raise ValueError(f"Input file {input_file} should have the `.parquet` extension.")
+
+    def prepare_input(self, df, input_file):
+        '''Add the weights (data), the scaled weights, the labels and the metadata to the events `df` read from `input_file`.'''
+        # For data, save weights of 1 for all events
+        if self.has_data & (not "event" in df.fields):
+            df["event"] = ak.zip({"weight": np.ones(len(df), dtype=float)})
+        # Reweigh the events by a factor
+        if self.reweigh:
+            df = self.scale_weights(df, self.get_sample_name(input_file))
+        # Get sample name from the input file name
+        if self.label:
+            df = self.build_labels(df, self.get_sample_name(input_file))
+            # Add metadata to the dataframe
+            df["metadata"] = ak.zip({"year": len(df)*[self.get_year(input_file)]})
+            year = df.metadata.year
+            # This is needed in order to have a 1D array with one year string per event
+            df["metadata"] = ak.with_field(df.metadata, year[:,0], "year")
+        return df
+
+    def load_input(self):
+        '''Load the input file.'''
+        self.check_inputs()
         # Read the parquet files
         print(f"Reading {len(self.input_files)} parquet files: ", self.input_files)
         dfs = []
         for input_file in self.input_files:
             print("Reading file: ", input_file)
             df = ak.from_parquet(input_file, columns=self.columns_to_read(input_file))
-            # For data, save weights of 1 for all events
-            if self.has_data & (not "event" in df.fields):
-                df["event"] = ak.zip({"weight": np.ones(len(df), dtype=float)})
-            # Reweigh the events by a factor
-            if self.reweigh:
-                df = self.scale_weights(df, self.get_sample_name(input_file))
-            # Get sample name from the input file name
-            if self.label:
-                df = self.build_labels(df, self.get_sample_name(input_file))
-                # Add metadata to the dataframe
-                df["metadata"] = ak.zip({"year": len(df)*[self.get_year(input_file)]})
-                year = df.metadata.year
-                # This is needed in order to have a 1D array with one year string per event
-                df["metadata"] = ak.with_field(df.metadata, year[:,0], "year")
-
-            dfs.append(df)
+            dfs.append(self.prepare_input(df, input_file))
         # Return the concatenated dataframe
         # If shuffle is True, the events are randomly shuffled
         df_concat = ak.concatenate(dfs)

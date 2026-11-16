@@ -22,12 +22,39 @@ class SpecialKey(str, Enum):
     Weights = "WEIGHTS"
 
 class SPANetDataset(Dataset):
-    def __init__(self, input_file, cfg, final_state, shuffle=True, reweigh=False, entrystop=None, has_data=False, fully_matched=False):
-        super().__init__(input_file, cfg, shuffle=shuffle, reweigh=reweigh, entrystop=entrystop, has_data=has_data)
+    def __init__(self, input_file, cfg, final_state, shuffle=True, reweigh=False, entrystop=None, has_data=False, fully_matched=False, batch_size=200000):
         self.fully_matched = fully_matched
         self.final_state = final_state
-        if self.fully_matched:
-            self.select_fully_matched()
+        # The input files are read and converted in batches of `batch_size` events, to limit the memory usage
+        self.batch_size = batch_size
+        super().__init__(input_file, cfg, shuffle=shuffle, reweigh=reweigh, entrystop=entrystop, has_data=has_data)
+
+    def load_input(self):
+        '''Only check the input files: the events are read batch by batch in `save`.'''
+        self.check_inputs()
+        print(f"Input: {len(self.input_files)} parquet files: ", self.input_files)
+        return None
+
+    def read_batches(self):
+        '''Yield the events of the input files in batches of `batch_size` events, prepared as in `Dataset.load_input`
+        (labels, weights, metadata) and with the fully matched selection applied if requested.'''
+        import pyarrow as pa
+        import pyarrow.parquet as pq
+        for input_file in self.input_files:
+            pf = pq.ParquetFile(input_file)
+            for batch in pf.iter_batches(batch_size=self.batch_size, columns=self.columns_to_read(input_file)):
+                df = self.prepare_input(ak.from_arrow(pa.Table.from_batches([batch])), input_file)
+                if self.fully_matched:
+                    df = self.select_fully_matched(df)
+                yield df
+
+    def count_events(self):
+        '''Number of events of the input files (after the fully matched selection if requested).'''
+        import pyarrow.parquet as pq
+        if not self.fully_matched:
+            return sum(pq.ParquetFile(f).metadata.num_rows for f in self.input_files)
+        print("Counting the fully matched events...")
+        return sum(len(df) for df in self.read_batches())
 
     def load_config(self):
         '''Load the config file with OmegaConf and read the input features for the SPANet training.'''
@@ -50,10 +77,10 @@ class SPANetDataset(Dataset):
         print(f"Reading {len(columns)}/{len(available)} columns: {columns}")
         return columns
 
-    def select_fully_matched(self):
-        '''Select only fully matched events.'''
-        mask_fullymatched = ak.sum(self.dataset.df[self.collection["Jet"]].matched == True, axis=1) >= 4
-        df = self.dataset.df[mask_fullymatched]
+    def select_fully_matched(self, df):
+        '''Return only the fully matched events of `df`.'''
+        mask_fullymatched = ak.sum(df[self.collection["Jet"]].matched == True, axis=1) >= 4
+        df = df[mask_fullymatched]
         jets = df[self.collection["Jet"]]
 
         # 2. Higgs Check (Always 2 b-jets)
@@ -70,7 +97,6 @@ class SPANetDataset(Dataset):
             mask_match = mask_match & (ak.num(jets_tlep) == 1)
 
         elif self.final_state == "dileptonic":
-            print("Dileptonic final state")
             # Dileptonic: 2 Higgs + 1 Top(b) + 1 AntiTop(b) = 4 jets
             
             # Top 1 (b-jet, prov=2)
@@ -81,9 +107,7 @@ class SPANetDataset(Dataset):
             jets_t2 = jets[jets.prov == 3]
             mask_match = mask_match & (ak.num(jets_t2) == 1)
 
-        df = df[mask_match]
-        print(f"Selected {len(df)} fully matched events ({self.final_state})")
-        self.dataset.df = df
+        return df[mask_match]
 
     def check_output(self, output_file):
         '''Check the output file extension and if it already exists.'''
@@ -109,7 +133,8 @@ class SPANetDataset(Dataset):
     
 
     def create_classifications(self, df):
-        '''Create the classification targets in the h5 file.'''
+        '''Return the classification targets: {h5 path: (array, dtype)}.'''
+        out = {}
         for group, targets in self.classification_targets.items():
             for target in targets:
                 if group == SpecialKey.Event.value:
@@ -117,11 +142,14 @@ class SPANetDataset(Dataset):
                         values = df[target]
                     except:
                         raise Exception(f"Target {target} not found in the dataframe.")
-                    self.file.create_dataset(f"{SpecialKey.Classifications.value}/{group}/{target}", np.shape(values), dtype='int64', data=values)
+                    out[f"{SpecialKey.Classifications.value}/{group}/{target}"] = (values, 'int64')
                 else:
                     raise NotImplementedError
+        return out
 
     def create_targets(self, df):
+        '''Return the jet (and lepton) indices of the targets: {h5 path: (array, dtype)}.'''
+        out = {}
         jets = df[self.collection["Jet"]]
         
         # Check if this is a signal sample with parton matching
@@ -164,8 +192,8 @@ class SPANetDataset(Dataset):
                     index_b1 = indices_prov[:,0]
                     index_b2 = indices_prov[:,1]
 
-                    self.file.create_dataset(f"{SpecialKey.Targets.value}/h/b1", np.shape(index_b1), dtype='int64', data=index_b1)
-                    self.file.create_dataset(f"{SpecialKey.Targets.value}/h/b2", np.shape(index_b2), dtype='int64', data=index_b2)
+                    out[f"{SpecialKey.Targets.value}/h/b1"] = (index_b1, 'int64')
+                    out[f"{SpecialKey.Targets.value}/h/b2"] = (index_b2, 'int64')
 
                 elif target == "t1":
                     if "prov" not in jets.fields:
@@ -183,9 +211,9 @@ class SPANetDataset(Dataset):
                         mask = jets.prov == 2 # t1->Wb
                     index_b_hadr = ak.fill_none(ak.pad_none(indices[mask], 1), -1)[:,0]
 
-                    self.file.create_dataset(f"{SpecialKey.Targets.value}/t1/q1", np.shape(index_q1), dtype='int64', data=index_q1)
-                    self.file.create_dataset(f"{SpecialKey.Targets.value}/t1/q2", np.shape(index_q2), dtype='int64', data=index_q2)
-                    self.file.create_dataset(f"{SpecialKey.Targets.value}/t1/b", np.shape(index_b_hadr), dtype='int64', data=index_b_hadr)
+                    out[f"{SpecialKey.Targets.value}/t1/q1"] = (index_q1, 'int64')
+                    out[f"{SpecialKey.Targets.value}/t1/q2"] = (index_q2, 'int64')
+                    out[f"{SpecialKey.Targets.value}/t1/b"] = (index_b_hadr, 'int64')
                 
                 elif target == "t2":
                     if "prov" not in jets.fields:
@@ -194,7 +222,7 @@ class SPANetDataset(Dataset):
                         mask = jets.prov == 3 # t2->b
                     index_b_lep = ak.fill_none(ak.pad_none(indices[mask], 1), -1)[:,0]
 
-                    self.file.create_dataset(f"{SpecialKey.Targets.value}/t2/b", np.shape(index_b_lep), dtype='int64', data=index_b_lep)
+                    out[f"{SpecialKey.Targets.value}/t2/b"] = (index_b_lep, 'int64')
                 else:
                     raise NotImplementedError
         
@@ -218,8 +246,8 @@ class SPANetDataset(Dataset):
                     index_b1 = indices_prov[:,0]
                     index_b2 = indices_prov[:,1]
 
-                    self.file.create_dataset(f"{SpecialKey.Targets.value}/h/b1", np.shape(index_b1), dtype='int64', data=index_b1)
-                    self.file.create_dataset(f"{SpecialKey.Targets.value}/h/b2", np.shape(index_b2), dtype='int64', data=index_b2)
+                    out[f"{SpecialKey.Targets.value}/h/b1"] = (index_b1, 'int64')
+                    out[f"{SpecialKey.Targets.value}/h/b2"] = (index_b2, 'int64')
                 
                 elif target == "t1":
                     if "prov" not in jets.fields:
@@ -229,8 +257,7 @@ class SPANetDataset(Dataset):
                     indices_prov = ak.fill_none(ak.pad_none(indices[mask], 2), -1)
 
                     index_b1 = indices_prov[:,0]
-                    self.file.create_dataset(f"{SpecialKey.Targets.value}/t1/b", np.shape(index_b1), dtype='int64', data=index_b1)
-                    print(df.fields)
+                    out[f"{SpecialKey.Targets.value}/t1/b"] = (index_b1, 'int64')
                     if "Event" in df.fields and "TargetLepTop" in df["Event"].fields:
                         lep_idx = df["Event"]["TargetLepTop"]
                     
@@ -252,7 +279,7 @@ class SPANetDataset(Dataset):
                     else:
                         lep_idx = np.full(len(jets), -1, dtype='int64')                        
                     
-                    self.file.create_dataset(f"{SpecialKey.Targets.value}/t1/l", np.shape(lep_idx), dtype='int64', data=lep_idx)
+                    out[f"{SpecialKey.Targets.value}/t1/l"] = (lep_idx, 'int64')
 
                 elif target == 't2':
                     if "prov" not in jets.fields:
@@ -262,7 +289,7 @@ class SPANetDataset(Dataset):
                     indices_prov = ak.fill_none(ak.pad_none(indices[mask], 2), -1)
 
                     index_b2 = indices_prov[:,0]
-                    self.file.create_dataset(f"{SpecialKey.Targets.value}/t2/b", np.shape(index_b2), dtype='int64', data=index_b2)
+                    out[f"{SpecialKey.Targets.value}/t2/b"] = (index_b2, 'int64')
 
                     if "Event" in df.fields and "TargetLepAntiTop" in df["Event"].fields:
                         lep_idx = df["Event"]["TargetLepAntiTop"]
@@ -272,30 +299,27 @@ class SPANetDataset(Dataset):
                     else:
                         lep_idx = np.full(len(jets), -1, dtype='int64')
 
-                    self.file.create_dataset(f"{SpecialKey.Targets.value}/t2/l", np.shape(lep_idx), dtype='int64', data=lep_idx)
+                    out[f"{SpecialKey.Targets.value}/t2/l"] = (lep_idx, 'int64')
                 else:
                     raise NotImplementedError
+        return out
 
     def create_weights(self, df):
-        '''Create the weights in the h5 file.'''
-        weights = df.event.weight
-        print("Creating dataset: ", f"{SpecialKey.Weights.value}/weight")
-        self.file.create_dataset(f"{SpecialKey.Weights.value}/weight", np.shape(weights), dtype='float32', data=weights)
-        print(f"SpecialKey.Weights.value = {SpecialKey.Weights.value}")
+        '''Return the event weights: {h5 path: (array, dtype)}.'''
+        return {f"{SpecialKey.Weights.value}/weight": (df.event.weight, 'float32')}
 
     def create_inputs(self, df):
-        '''Create the input arrays in the h5 file.'''
+        '''Return the input arrays: {h5 path: (array, dtype)}.'''
         features = self.get_object_features(df)
-
+        out = {}
         for obj, feats in features.items():
             for feat, val in feats.items():
                 if feat == "MASK":
                     dtype = 'bool'
                 else:
                     dtype = 'float32'
-                dataset_name = f"{SpecialKey.Inputs.value}/{obj}/{feat}"
-                print("Creating dataset: ", dataset_name)
-                ds = self.file.create_dataset(dataset_name, np.shape(val), dtype=dtype, data=val)
+                out[f"{SpecialKey.Inputs.value}/{obj}/{feat}"] = (val, dtype)
+        return out
 
     def get_object_features(self, df):
 
@@ -386,47 +410,102 @@ class SPANetDataset(Dataset):
     #        self.print()
     #        self.file.close()
 
-    def save(self, output_file, events_per_file=1000000):
-        '''Save the h5 files for both training and testing datasets, splitting into smaller files.
-        
-        Args:
-            output_file: Base output file path
-            events_per_file: Maximum number of events per file (default: 2M)
-        '''
-        for dataset_type in ["train", "test"]:
-            df = getattr(self, dataset_type)
-            print(f"\nProcessing dataset: {dataset_type} ({len(df)} events)")
-            
-            if len(df) == 0:
+    def plan_output(self, output_file, nevents, events_per_file):
+        '''Return the output files [(name, dataset type, number of events)] and the output file index of each input event
+        (-1 if the event is dropped by `entrystop`). As in `Dataset.train`/`test`, the events are shuffled, the first
+        `entrystop` are kept and split in training and testing events, then in files of `events_per_file` events.'''
+        nkeep = min(nevents, self.entrystop) if self.entrystop else nevents
+        n_train = int((1-self.test_size)*nkeep)
+        files = []
+        for dataset_type, n in [("train", n_train), ("test", nkeep - n_train)]:
+            if n == 0:
                 print(f"Skipping {dataset_type} - empty dataset")
                 continue
-            
-            # Calculate number of files needed
-            n_files = (len(df) + events_per_file - 1) // events_per_file
-            print(f"Will create {n_files} files with up to {events_per_file} events each")
-            
-            # Split into multiple files
+            n_files = (n + events_per_file - 1) // events_per_file
             for file_idx in range(n_files):
-                start_idx = file_idx * events_per_file
-                end_idx = min((file_idx + 1) * events_per_file, len(df))
-                df_chunk = df[start_idx:end_idx]
-                
-                # Create filename with chunk info
-                output_file_custom = output_file.replace(".h5", f"_{dataset_type}_part{file_idx}_{len(df_chunk)}.h5")
-                self.check_output(output_file_custom)
-                
-                print(f"  File {file_idx+1}/{n_files}: Creating {output_file_custom} ({len(df_chunk)} events)")
-                
-                self.file = h5py.File(output_file_custom, "w")
+                size = min(events_per_file, n - file_idx*events_per_file)
+                files.append((output_file.replace(".h5", f"_{dataset_type}_part{file_idx}_{size}.h5"), dataset_type, size))
+        # Output file of each event: shuffling this array is equivalent to shuffling the events before splitting them
+        index = np.full(nevents, -1, dtype=np.int16 if len(files) < 2**15 else np.int32)
+        index[:nkeep] = np.repeat(np.arange(len(files)), [size for _, _, size in files])
+        if self.shuffle:
+            np.random.shuffle(index)
+        return files, index
+
+    def batch_arrays(self, df):
+        '''Return the arrays of the h5 file for the events `df`: {h5 path: numpy array}.'''
+        arrays = {}
+        if not self.has_data:
+            arrays.update(self.create_targets(df))
+        arrays.update(self.create_classifications(df))
+        arrays.update(self.create_inputs(df))
+        arrays.update(self.create_weights(df))
+        out = {}
+        for name, (values, dtype) in arrays.items():
+            values = ak.to_numpy(values) if isinstance(values, ak.Array) else np.asarray(values)
+            out[name] = values.astype(dtype)
+        return out
+
+    def save(self, output_file, events_per_file=1000000):
+        '''Save the h5 files for both training and testing datasets, splitting into smaller files.
+        The input files are read in batches and each event is written to its output file, which is shuffled at the end:
+        the memory usage does not depend on the number of events.
+
+        Args:
+            output_file: Base output file path
+            events_per_file: Maximum number of events per file (default: 1M)
+        '''
+        nevents = self.count_events()
+        files, index = self.plan_output(output_file, nevents, events_per_file)
+        print(f"{nevents} input events, {np.sum(index >= 0)} kept: will create {len(files)} files with up to {events_per_file} events each")
+        for name, _, _ in files:
+            self.check_output(name)
+
+        h5files, offsets, ievent = [], np.zeros(len(files), dtype=np.int64), 0
+        try:
+            for name, dataset_type, size in files:
+                print(f"  Creating {name} ({size} events)")
+                self.file = h5py.File(name, "w")
                 self.create_groups()
-                if not self.has_data:
-                    self.create_targets(df_chunk)
-                    print("Targets created")
-                self.create_classifications(df_chunk)
-                self.create_inputs(df_chunk)
-                self.create_weights(df_chunk)
-                self.file.close()
-                
-                print(f"  ✓ Completed {output_file_custom}")
-            
-            print(f"Finished {dataset_type}: created {n_files} files")
+                h5files.append(self.file)
+
+            for df in self.read_batches():
+                arrays = self.batch_arrays(df)
+                batch_index = index[ievent:ievent + len(df)]
+                ievent += len(df)
+                for ifile in np.unique(batch_index[batch_index >= 0]):
+                    sel = batch_index == ifile
+                    n, start = int(np.sum(sel)), offsets[ifile]
+                    for path, values in arrays.items():
+                        if path not in h5files[ifile]:
+                            h5files[ifile].create_dataset(path, (files[ifile][2],) + values.shape[1:], dtype=values.dtype)
+                        ds = h5files[ifile][path]
+                        if ds.shape[1:] != values.shape[1:]:
+                            raise ValueError(f"{path}: shape {values.shape[1:]} differs from {ds.shape[1:]} of the previous events")
+                        ds[start:start + n] = values[sel]
+                    offsets[ifile] += n
+                print(f"  {ievent}/{nevents} events processed", flush=True)
+
+            if ievent != nevents:
+                raise ValueError(f"{ievent} events read, {nevents} expected")
+            for (name, dataset_type, size), f, n in zip(files, h5files, offsets):
+                if n != size:
+                    raise ValueError(f"{name}: {n} events written, {size} expected")
+                if self.shuffle:
+                    # The same permutation for all the datasets of the file, one dataset in memory at a time
+                    perm = np.random.permutation(size)
+                    datasets = []
+                    f.visititems(lambda path, obj: datasets.append(obj) if isinstance(obj, h5py.Dataset) else None)
+                    for ds in datasets:
+                        ds[...] = ds[...][perm]
+                f.close()
+                print(f"  \u2713 Completed {name}")
+        except BaseException:
+            # Do not leave partial outputs behind
+            for (name, _, _), f in zip(files, h5files):
+                f.close()
+                if os.path.exists(name):
+                    os.remove(name)
+            raise
+        for dataset_type in ["train", "test"]:
+            print(f"Finished {dataset_type}: created {sum(t == dataset_type for _, t, _ in files)} files")
