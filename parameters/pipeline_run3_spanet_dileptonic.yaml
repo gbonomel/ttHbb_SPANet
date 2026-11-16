@@ -1,0 +1,184 @@
+# Configuration of scripts/run_pipeline.py: PocketCoffea output -> merged parquet -> (optional) SPANet h5.
+#
+# The datasets listed in `datasets` are shared by the parquet and the h5 steps: comment a dataset out to
+# drop it from both. The PocketCoffea sample of each dataset is read from config.json, and the datasets
+# split in subsamples (ttB/ttC/ttLF) give one parquet file per subsample, e.g. MC_TTtoLNu2Q_ttB_2022_preEE.
+
+python: python          # interpreter used to run the conversion scripts (must have coffea/awkward)
+base_dir: /afs/cern.ch/work/g/gbonomel/higgs/ttHbb_SPANet
+
+# Merged coffea file (PocketCoffea job outputs merged beforehand): it gives the sample of each dataset
+merged_coffea: /afs/cern.ch/work/g/gbonomel/higgs/ttHbb/spanet/training_5wp_multiplewp/no_triggerSF/output_2L_ntuples_3j3b_all.coffea
+
+# Folder with the parquet ntuples saved by PocketCoffea: <ntuples>/<dataset>[/<subsample>]/<category>/<variation>
+ntuples: /eos/cms/store/group/phys_higgs/ttHbb/ntuples/ttHbb_export/training_5wps_multiplewp/no_triggerSF/dilep_channel/ntuples_3j3b
+
+# Outputs: <output>/parquet_overall/<year>/<name>.parquet and <output>/h5_files/<name>.h5
+output: /eos/cms/store/group/phys_higgs/ttHbb/ntuples/ttHbb_export/training_5wps_multiplewp/no_triggerSF/dilep_channel/3j3b
+
+category: baseline_3j3b
+variation: nominal
+
+# Datasets (names without year) per group of years. The group names (tthbb, ttbar, others, ...) are free
+# and are used in `h5.files` to choose which datasets go into each h5 file.
+datasets:
+  2022_23:
+    years: [2022_preEE, 2022_postEE, 2023_preBPix, 2023_postBPix]
+    tthbb:
+      - MC_TTH_Hto2B_M-125
+    # Commented out: datasets not in the merged coffea (not processed)
+    ttbar:                          # split in subsamples ttB, ttC, ttLF
+      - MC_TTtoLNu2Q
+      - MC_TTto2L2Nu
+      #- MC_TTto4Q
+      #- MC_TTBB-TTtoLNu2Q
+      #- MC_TTBB-TTto2L2Nu
+      #- MC_TTBB-TTto4Q
+      - MC_TTtoLNu2Q-BBDPS
+      - MC_TTto2L2Nu-BBDPS
+      - MC_TTto4Q-BBDPS
+    others:
+      - MC_TTHtoNon2B_M-125         # only 2022_postEE in the merged coffea
+
+      #- MC_TbarBQtoLNu-t-channel-4FS
+      #- MC_TBbarQtoLNu-t-channel-4FS
+      #- MC_TBbartoLplusNuBbar-s-channel-4FS
+      #- MC_TbarBtoLminusNuB-s-channel-4FS
+      - MC_TbarWplusto2L2Nu
+      #- MC_TbarWplustoLNu2Q
+      - MC_TWminusto2L2Nu
+      #- MC_TWminustoLNu2Q
+
+      #- MC_TTZ-ZtoQQ-TTtoLNu2Q-1Jets
+      #- MC_TTZ-ZtoQQ-TTto2L2Nu-1Jets
+      - MC_TTLL_MLL-4to50
+      - MC_TTLL_MLL-50
+      - MC_TTNuNu
+      - MC_TTLNu-1Jets              # only 2022 in the merged coffea
+      #- MC_TTW-WtoQQ-1Jets
+
+      #- MC_WtoLNu-4Jets_MLNu-0to120_HT-40to100
+      #- MC_WtoLNu-4Jets_MLNu-0to120_HT-100to400
+      #- MC_WtoLNu-4Jets_MLNu-0to120_HT-400to800
+      #- MC_WtoLNu-4Jets_MLNu-0to120_HT-800to1500
+      #- MC_WtoLNu-4Jets_MLNu-0to120_HT-1500to2500
+      #- MC_WtoLNu-4Jets_MLNu-120_HT-40to100
+      #- MC_WtoLNu-4Jets_MLNu-120_HT-100to400
+      #- MC_WtoLNu-4Jets_MLNu-120_HT-400to800
+      #- MC_WtoLNu-4Jets_MLNu-120_HT-800to1500
+      #- MC_WtoLNu-4Jets_MLNu-120_HT-1500to2500
+      #- MC_DYto2L-4Jets_MLL-4to50_HT-40to70
+      #- MC_DYto2L-4Jets_MLL-4to50_HT-70to100
+      #- MC_DYto2L-4Jets_MLL-4to50_HT-100to400
+      #- MC_DYto2L-4Jets_MLL-4to50_HT-400to800
+      #- MC_DYto2L-4Jets_MLL-4to50_HT-800to1500
+      #- MC_DYto2L-4Jets_MLL-4to50_HT-1500to2500
+      #- MC_DYto2L-4Jets_MLL-4to50_HT-2500
+      #- MC_DYto2L-4Jets_MLL-50to120_HT-40to70
+      #- MC_DYto2L-4Jets_MLL-50to120_HT-70to100
+      #- MC_DYto2L-4Jets_MLL-50to120_HT-100to400
+      #- MC_DYto2L-4Jets_MLL-50to120_HT-400to800
+      #- MC_DYto2L-4Jets_MLL-50to120_HT-800to1500
+      #- MC_DYto2L-4Jets_MLL-50to120_HT-1500to2500
+      #- MC_DYto2L-4Jets_MLL-50to120_HT-2500
+      #- MC_DYto2L-4Jets_MLL-120_HT-40to70
+      #- MC_DYto2L-4Jets_MLL-120_HT-70to100
+      #- MC_DYto2L-4Jets_MLL-120_HT-100to400
+      #- MC_DYto2L-4Jets_MLL-120_HT-400to800
+      #- MC_DYto2L-4Jets_MLL-120_HT-800to1500
+      #- MC_DYto2L-4Jets_MLL-120_HT-1500to2500
+      #- MC_DYto2L-4Jets_MLL-120_HT-2500
+
+  2024:
+    years: [2024]
+    tthbb:
+      - MC_TTH-Hto2B-TTtoLNu2Q_Par-M-125                 
+      - MC_TTH-Hto2B-TTto2L2Nu_Par-M-125
+    ttbar:                          # split in subsamples ttB, ttC, ttLF
+      - MC_TTToLNu2Q                # "TTTo" (capital T) for 2024
+      - MC_TTTo2L2Nu
+      #- MC_TTto4Q                  # not in the merged coffea
+      - MC_TTBB-TTtoLNu2Q
+      - MC_TTBB-TTto2L2Nu
+      #- MC_TTBB-TTto4Q             # not in the merged coffea
+      - MC_TTtoLNu2Q-BBDPS
+      - MC_TTto2L2Nu-BBDPS
+      - MC_TTto4Q-BBDPS
+    others:
+      - MC_TTH-HtoNon2B_Par-M-125
+      - MC_TbarBQtoLNu-t-channel-4FS
+      - MC_TBbarQtoLNu-t-channel-4FS
+      - MC_TBbartoLplusNuBbar-s-channel-4FS
+      - MC_TbarBtoLminusNuB-s-channel-4FS
+      - MC_TbarWplusto2L2Nu
+      - MC_TbarWplustoLNu2Q
+      - MC_TWminusto2L2Nu
+      - MC_TWminustoLNu2Q
+
+      - MC_TTLL_Bin-MLL-4to50
+      - MC_TTLL_Bin-MLL-50
+      - MC_TTZ-ZtoQQ-1Jets
+      - MC_TTNuNu
+      - MC_TTW-WtoQQ-1Jets
+
+      #- MC_WtoLNu-4Jets_Bin-HT-40to100-MLNu-0to120
+      #- MC_WtoLNu-4Jets_Bin-HT-100to400-MLNu-0to120
+      #- MC_WtoLNu-4Jets_Bin-HT-100to400-MLNu-120
+      #- MC_WtoLNu-4Jets_Bin-HT-400to800-MLNu-0to120
+      #- MC_WtoLNu-4Jets_Bin-HT-400to800-MLNu-120
+      #- MC_WtoLNu-4Jets_Bin-HT-800to1500-MLNu-0to120
+      #- MC_WtoLNu-4Jets_Bin-HT-800to1500-MLNu-120
+      #- MC_WtoLNu-4Jets_Bin-HT-1500to2500-MLNu-0to120
+      #- MC_WtoLNu-4Jets_Bin-HT-1500to2500-MLNu-120
+      #- MC_DYto2E_Bin-MLL-10to50
+      #- MC_DYto2E-2Jets_Bin-MLL-50
+      #- MC_DYto2Mu_Bin-MLL-10to50
+      #- MC_DYto2Mu-2Jets_Bin-MLL-50
+      #- MC_DYto2Tau_Bin-MLL-10to50
+      #- MC_DYto2Tau-2Jets_Bin-MLL-50
+
+parquet:
+  cfg: parameters/features_run3_genmatched_dilep.yaml
+
+h5:
+  cfg: parameters/features_spanet_h5_run3_dileptonic.yaml
+  final_state: dileptonic
+  # One h5 file per entry and per year ({year} is replaced). Each file takes all the datasets of the groups
+  # in `groups` plus the parquet files in `subsamples` (names without year, <dataset>_<subsample>).
+  # `args` are passed as extra arguments to parquet_to_h5.py (e.g. --fully_matched, --reweigh).
+  files:
+    background_{year}:
+      groups: [others]
+      subsamples:                   # 5FS for ttC and ttLF, 4FS for ttB
+        - MC_TTto2L2Nu_ttC          # 2022-2023
+        - MC_TTtoLNu2Q_ttC
+        - MC_TTTo2L2Nu_ttC          # 2024 ("TTTo")
+        - MC_TTToLNu2Q_ttC
+        #- MC_TTto4Q_ttC
+        - MC_TTBB-TTtoLNu2Q_ttB     # 2024 only
+        - MC_TTBB-TTto2L2Nu_ttB
+        #- MC_TTBB-TTto4Q_ttB
+        - MC_TTtoLNu2Q-BBDPS_ttB
+        - MC_TTto2L2Nu-BBDPS_ttB
+        - MC_TTto4Q-BBDPS_ttB
+        - MC_TTtoLNu2Q_ttLF         # 2022-2023
+        - MC_TTto2L2Nu_ttLF
+        - MC_TTTo2L2Nu_ttLF         # 2024 ("TTTo")
+        - MC_TTToLNu2Q_ttLF
+        #- MC_TTto4Q_ttLF
+    tthbb_{year}: # contains jet parton matching information, used for assignment training in SPANet
+      groups: [tthbb]
+
+# HTCondor jobs of the --condor mode: one job per parquet/h5 output, in the PocketCoffea image (venv with ttHbb_SPANet, see jobs/run_pipeline.sh).
+# request_memory is in MB; at CERN each CPU comes with 2 GB, jobs asking for more memory wait longer to start.
+condor:
+  image: /cvmfs/unpacked.cern.ch/gitlab-registry.cern.ch/cms-analysis/general/pocketcoffea:lxplus-el9-stable
+  # The parquet and h5 conversions run in batches of events: ~2-3 GB whatever the sample size
+  parquet:
+    request_memory: 4000
+    request_cpus: 1
+    job_flavour: longlunch          # 2 h: the large samples (e.g. MC_TTto2L2Nu_ttLF_2024, 73M events) do not fit in espresso (20 min)
+  h5:
+    request_memory: 4000            # h5 files can override it with their own request_memory
+    request_cpus: 1
+    job_flavour: workday            # 8 h: background_2024 (~90M events) exceeds the 2 h of longlunch
