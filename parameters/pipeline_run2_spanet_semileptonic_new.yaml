@@ -1,0 +1,123 @@
+# Configuration of scripts/run_pipeline.py: PocketCoffea output -> merged parquet -> (optional) SPANet h5.
+#
+# The datasets listed in `datasets` are shared by the parquet and the h5 steps: comment a dataset out to
+# drop it from both. The PocketCoffea sample of each dataset is read from config.json, and the datasets
+# split in subsamples (ttB/ttC/ttLF) give one parquet file per subsample, e.g. MC_TTtoLNu2Q_ttB_2022_preEE.
+
+python: python          # interpreter used to run the conversion scripts (must have coffea/awkward)
+base_dir: /eos/user/a/adpetre/ttHbb_SPANet_new/ttHbb_SPANet
+
+# Merged coffea file (PocketCoffea job outputs merged beforehand): it gives the sample of each dataset
+merged_coffea: /eos/user/a/adpetre/pocket_coffea_jobs_second/4_exportNtuples_all/output_allSamples.coffea
+
+# Folder with the parquet ntuples saved by PocketCoffea: <ntuples>/<dataset>[/<subsample>]/<category>/<variation>
+ntuples: /eos/user/a/adpetre/export_spanet_Nov26_fixed
+
+# Outputs: <output>/parquet_overall/<year>/<name>.parquet and <output>/h5_files/<name>.h5
+output: /eos/user/a/adpetre/export_spanet_Nov26_fixed/outputs
+
+category: 5j3b
+variation: nominal
+
+# Datasets (names without year) per group of years. The group names (tthbb, ttbar, others, ...) are free
+# and are used in `h5.files` to choose which datasets go into each h5 file.
+datasets:
+  all:
+    years: [2016_PreVFP_v15, 2016_PostVFP_v15, 2017_v15, 2018_v15]
+    tthbb:
+      - MC_ttHTobb_M125
+    ttbar:                          # split in subsamples ttB, ttC, ttLF
+      - MC_TTToSemiLeptonic
+      - MC_TTTo2L2Nu
+      - MC_TTToHadronic
+      - MC_TTbb_4f_TTToSemiLeptonic
+      - MC_TTbb_4f_TTTo2L2Nu
+      - MC_TTbb_4f_TTToHadronic
+
+      - MC_TTTo2L2Nu_bbDPS
+      - MC_TTToHadronic_bbDPS
+      - MC_TTToSemiLeptonic_bbDPS
+    others:
+      - MC_ttHToNonbb_M125
+
+      - MC_ST_s-channel_4f_leptonDecays
+      - MC_ST_tW_top_5f_NoFullyHadronicDecays
+      - MC_ST_t-channel_antitop_4f_InclusiveDecays
+      - MC_ST_tW_antitop_5f_NoFullyHadronicDecays
+      - MC_ST_t-channel_top_4f_InclusiveDecays
+
+      - MC_TTZToQQ
+      - MC_TTZToLLNuNu_M-10
+      - MC_TTWJetsToLNu
+      - MC_TTWJetsToQQ
+
+      - MC_TTTT
+
+      - MC_WJetsToLNu_HT-70To100
+      - MC_WJetsToLNu_HT-100To200
+      - MC_WJetsToLNu_HT-200To400
+      - MC_WJetsToLNu_HT-400To600
+      - MC_WJetsToLNu_HT-600To800
+      - MC_WJetsToLNu_HT-800To1200
+      - MC_WJetsToLNu_HT-1200To2500
+      - MC_WJetsToLNu_HT-2500ToInf
+
+      - MC_DYJetsToLL_M-10to50
+      - MC_DYJetsToLL_M-50_HT-70to100
+      - MC_DYJetsToLL_M-50_HT-100to200
+      - MC_DYJetsToLL_M-50_HT-200to400
+      - MC_DYJetsToLL_M-50_HT-400to600
+      - MC_DYJetsToLL_M-50_HT-600to800
+      - MC_DYJetsToLL_M-50_HT-800to1200
+      - MC_DYJetsToLL_M-50_HT-1200to2500
+      - MC_DYJetsToLL_M-50_HT-2500toInf
+
+      - MC_WplusH_HToBB_WToLNu_M-125
+      - MC_WminusH_HToBB_WToLNu_M-125
+      - MC_ZH_HToBB_ZToLL_M-125
+
+      - MC_WW
+      - MC_WZ
+      - MC_ZZ
+      
+
+parquet:
+  cfg: parameters/features_run2_genmatched_semilep_new.yaml
+
+h5:
+  cfg: parameters/features_spanet_h5_run2_semileptonic_new.yaml
+  final_state: semileptonic
+  # One h5 file per entry and per year ({year} is replaced). Each file takes all the datasets of the groups
+  # in `groups` plus the parquet files in `subsamples` (names without year, <dataset>_<subsample>).
+  # `args` are passed as extra arguments to parquet_to_h5.py (e.g. --fully_matched, --reweigh).
+  files:
+    background_{year}:
+      groups: [others]
+      subsamples:                   # 5FS for ttC and ttLF, 4FS for ttB
+        - MC_TTTo2L2Nu_ttC
+        - MC_TTToSemiLeptonic_ttC
+        - MC_TTToHadronic_ttC
+        - MC_TTbb_4f_TTToSemiLeptonic_ttB
+        - MC_TTbb_4f_TTTo2L2Nu_ttB
+        - MC_TTbb_4f_TTToHadronic_ttB
+        - MC_TTToSemiLeptonic_bbDPS_ttB
+        - MC_TTToHadronic_bbDPS_ttB
+        - MC_TTTo2L2Nu_bbDPS_ttB
+        - MC_TTToSemiLeptonic_ttLF
+        - MC_TTTo2L2Nu_ttLF
+        - MC_TTToHadronic_ttLF
+    tthbb_{year}: # contains jet parton matching information, used for assignment training in SPANet
+      groups: [tthbb]
+
+# HTCondor jobs of the --condor mode: one job per parquet/h5 output, in the PocketCoffea image (venv with ttHbb_SPANet, see jobs/run_pipeline.sh).
+# request_memory is in MB; at CERN each CPU comes with 2 GB, jobs asking for more memory wait longer to start.
+condor:
+  image: /cvmfs/unpacked.cern.ch/gitlab-registry.cern.ch/cms-analysis/general/pocketcoffea:lxplus-el9-stable
+  parquet:
+    request_memory: 16000
+    request_cpus: 1
+    job_flavour: espresso
+  h5:
+    request_memory: 16000           # h5 files can override it with their own request_memory (tthbb_2024: ~10.5 GB peak)
+    request_cpus: 1
+    job_flavour: espresso

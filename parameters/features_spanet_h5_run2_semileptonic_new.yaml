@@ -1,0 +1,117 @@
+input:
+  Jet: [MASK, pt, eta, phi, btag_L, btag_M, btag_T, btag_XT, btag_XXT, bRegPt]
+  Lepton: [pt, eta, phi, pdgId]
+  Met: [pt, phi, bRegPt, bRegPhi]
+  Event: [bRegpt_ht]
+collection:
+  Jet: JetGood
+  Lepton: LeptonGood
+  Met: PuppiMET
+
+
+particles: [t1, t2, h]
+
+mapping_sample:
+  MC_ttHTobb_M125: tthbb
+
+  MC_ttHToNonbb_M125: tthnonbb
+  ttB: ttbb
+  ttC: ttcc
+  ttLF: ttlf
+
+
+  MC_ST_s-channel_4f_leptonDecays: singlet
+  MC_ST_tW_top_5f_NoFullyHadronicDecays: singlet
+  MC_ST_t-channel_antitop_4f_InclusiveDecays: singlet
+  MC_ST_tW_antitop_5f_NoFullyHadronicDecays: singlet
+  MC_ST_t-channel_top_4f_InclusiveDecays: singlet
+
+  MC_TTZToQQ: ttv
+  MC_TTZToLLNuNu_M-10: ttv
+  MC_TTWJetsToLNu: ttv
+  MC_TTWJetsToQQ: ttv
+  MC_TTTT: ttv
+  
+  MC_WJetsToLNu_HT-70To100: vjets
+  MC_WJetsToLNu_HT-100To200: vjets
+  MC_WJetsToLNu_HT-200To400: vjets
+  MC_WJetsToLNu_HT-400To600: vjets
+  MC_WJetsToLNu_HT-600To800: vjets
+  MC_WJetsToLNu_HT-800To1200: vjets
+  MC_WJetsToLNu_HT-1200To2500: vjets
+  MC_WJetsToLNu_HT-2500ToInf: vjets
+
+  MC_DYJetsToLL_M-10to50: vjets
+  MC_DYJetsToLL_M-50_HT-70to100: vjets
+  MC_DYJetsToLL_M-50_HT-100to200: vjets
+  MC_DYJetsToLL_M-50_HT-200to400: vjets
+  MC_DYJetsToLL_M-50_HT-400to600: vjets
+  MC_DYJetsToLL_M-50_HT-600to800: vjets
+  MC_DYJetsToLL_M-50_HT-800to1200: vjets
+  MC_DYJetsToLL_M-50_HT-1200to2500: vjets
+  MC_DYJetsToLL_M-50_HT-2500toInf: vjets
+
+  MC_WplusH_HToBB_WToLNu_M-125: VH
+  MC_WminusH_HToBB_WToLNu_M-125: VH
+  MC_ZH_HToBB_ZToLL_M-125: VH
+
+  MC_WW: VV
+  MC_WZ: VV
+  MC_ZZ: VV
+
+
+
+mapping_encoding:
+  signal:
+    MC_ttHTobb_M125: 0
+
+    MC_ttHToNonbb_M125: 1
+    ttB: 2
+    ttC: 3
+    ttLF: 4
+
+    MC_ST_s-channel_4f_leptonDecays: 5
+    MC_ST_tW_top_5f_NoFullyHadronicDecays: 5
+    MC_ST_t-channel_antitop_4f_InclusiveDecays: 5
+    MC_ST_tW_antitop_5f_NoFullyHadronicDecays: 5
+    MC_ST_t-channel_top_4f_InclusiveDecays: 5
+
+    MC_TTZToQQ: 6
+    MC_TTZToLLNuNu_M-10: 6
+    MC_TTWJetsToLNu: 6
+    MC_TTWJetsToQQ: 6
+    MC_TTTT: 6
+
+    MC_WJetsToLNu_HT-70To100: 7
+    MC_WJetsToLNu_HT-100To200: 7
+    MC_WJetsToLNu_HT-200To400: 7
+    MC_WJetsToLNu_HT-400To600: 7
+    MC_WJetsToLNu_HT-600To800: 7
+    MC_WJetsToLNu_HT-800To1200: 7
+    MC_WJetsToLNu_HT-1200To2500: 7
+    MC_WJetsToLNu_HT-2500ToInf: 7
+
+    MC_DYJetsToLL_M-10to50: 7
+    MC_DYJetsToLL_M-50_HT-70to100: 7
+    MC_DYJetsToLL_M-50_HT-100to200: 7
+    MC_DYJetsToLL_M-50_HT-200to400: 7
+    MC_DYJetsToLL_M-50_HT-400to600: 7
+    MC_DYJetsToLL_M-50_HT-600to800: 7
+    MC_DYJetsToLL_M-50_HT-800to1200: 7
+    MC_DYJetsToLL_M-50_HT-1200to2500: 7
+    MC_DYJetsToLL_M-50_HT-2500toInf: 7
+
+    MC_WplusH_HToBB_WToLNu_M-125: 7
+    MC_WminusH_HToBB_WToLNu_M-125: 7
+    MC_ZH_HToBB_ZToLL_M-125: 7
+
+    MC_WW: 7
+    MC_WZ: 7
+    MC_ZZ: 7
+    
+
+classification:
+  EVENT:
+    - signal
+
+frac_train: 0.7
