@@ -331,6 +331,8 @@ class SPANetDataset(Dataset):
                 for feat in features:
                     if feat == "ht":
                         features_dict["ht"] = ak.sum(df["JetGood"]["pt"], axis=1)
+                    elif feat == "bRegpt_ht":
+                        features_dict["bRegpt_ht"] = ak.sum(df["JetGood"]["bRegPt"], axis=1)
                     else:
                         raise NotImplementedError
             else:
@@ -359,9 +361,12 @@ class SPANetDataset(Dataset):
                             raise NotImplementedError
 
                     if "MASK" in features:
-                        if not "pt" in features:
+                        if not "pt" in features and not "bRegPt" in features:
                             raise NotImplementedError
-                        features_dict["MASK"] = ~(features_dict["pt"] == 0)
+                        if "pt" in features:
+                            features_dict["MASK"] = ~(features_dict["pt"] == 0)
+                        if "bRegPt" in features:
+                            features_dict["MASK"] = ~(features_dict["bRegPt"] == 0)
                 else:
                     raise ValueError(f"Collection {collection} not found in the parquet file.")
             df_features[obj] = features_dict
